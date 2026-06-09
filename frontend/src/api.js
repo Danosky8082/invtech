@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// In production, the API is on the same domain (relative path)
 const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'
 });
