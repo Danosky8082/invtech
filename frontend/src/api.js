@@ -4,7 +4,7 @@ import axios from 'axios';
 const BACKEND_URL = 'https://invtech-backend-abc123.vercel.app/api';
 
 const API = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? BACKEND_URL : 'http://localhost:5000/api'
+  baseURL: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'
 });
 
 API.interceptors.request.use((req) => {
