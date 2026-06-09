@@ -1,10 +1,15 @@
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? ''  // same origin (Vercel will proxy /api)
-    : 'http://localhost:5000/api'
-});
+// Determine the base URL based on environment
+const getBaseURL = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // ✅ Replace this with your actual Vercel backend URL
+    return 'https://invtech-backend.vercel.app/api';
+  }
+  return 'http://localhost:5000/api';
+};
+
+const API = axios.create({ baseURL: getBaseURL() });
 
 API.interceptors.request.use((req) => {
   const token = sessionStorage.getItem('token');
