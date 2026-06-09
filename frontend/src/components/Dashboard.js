@@ -65,18 +65,17 @@ const Dashboard = () => {
 
         const [assetsResult, historyResult, ratesResult] = results;
 
-        if (assetsResult.status === 'fulfilled') {
-          setAssets(assetsResult.value.data);
-        } else {
-          console.error('Assets API failed:', assetsResult.reason);
-          setError('Could not load investment options. Please refresh.');
-        }
+        if (assetsResult.status === 'fulfilled' && Array.isArray(assetsResult.value.data)) {
+  setAssets(assetsResult.value.data);
+} else {
+  setAssets([]);
+}
 
-        if (historyResult.status === 'fulfilled') {
-          setHistory(historyResult.value.data);
-        } else {
-          console.error('History API failed:', historyResult.reason);
-        }
+if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.data)) {
+  setHistory(historyResult.value.data);
+} else {
+  setHistory([]);
+}
 
         if (ratesResult.status === 'fulfilled' && ratesResult.value.data?.rates) {
           setExchangeRates(ratesResult.value.data.rates);

@@ -8,7 +8,7 @@ const PublicPage = () => {
   const [country, setCountry] = useState('us');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const isAuthenticated = !!sessionStorage.getItem('token');   // ✅ changed to sessionStorage
+  const isAuthenticated = !!sessionStorage.getItem('token');
 
   useEffect(() => {
     const detectAndSetCountry = async () => {
@@ -29,9 +29,18 @@ const PublicPage = () => {
       setError(false);
       try {
         const newsRes = await getNews(country);
-        setNews(newsRes.data);
+        // ✅ Ensure we always set an array
+        if (newsRes && Array.isArray(newsRes.data)) {
+          setNews(newsRes.data);
+        } else {
+          console.warn('News API did not return an array:', newsRes);
+          setNews([]);
+          setError(true);
+        }
       } catch (err) {
+        console.error(err);
         setError(true);
+        setNews([]);
       } finally {
         setLoading(false);
       }
