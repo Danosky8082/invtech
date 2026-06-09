@@ -189,7 +189,7 @@ router.post('/simulate', auth, async (req, res) => {
     );
 
     // Currency symbol
-    const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
+    // const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
     const symbol = currencySymbols[currency] || '$';
 
     // Generate advice – now using the **amount in user's currency**
