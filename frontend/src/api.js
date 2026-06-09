@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// Replace with your actual backend URL from step 2
-const BACKEND_URL = 'https://invtech-backend-abc123.vercel.app/api';
-
 const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'
 });
@@ -21,5 +18,4 @@ export const detectCountry = () => API.get('/market/detect-country');
 export const getAssets = () => API.get('/simulation/assets');
 export const simulateInvestment = (data) => API.post('/simulation/simulate', data);
 export const getHistory = () => API.get('/simulation/history');
-
 export { API as api };
