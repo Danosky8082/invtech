@@ -61,33 +61,62 @@ router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
-  // Mock data (always an array)
-  const getMockData = (countryCode) => {
-    const mock = {
-      us: [{ title: 'US markets rally', description: 'Tech leads', url: '#', imageUrl: 'https://placehold.co/300x200?text=US' }],
-      ng: [{ title: 'NGX closes higher', description: 'Banking stocks', url: '#', imageUrl: 'https://placehold.co/300x200?text=NG' }],
-      gb: [{ title: 'FTSE 100 hits record', description: 'Mining surges', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK' }],
-      ca: [{ title: 'TSX rallies', description: 'Energy leads', url: '#', imageUrl: 'https://placehold.co/300x200?text=CA' }],
-      au: [{ title: 'ASX hits peak', description: 'Iron ore', url: '#', imageUrl: 'https://placehold.co/300x200?text=AU' }],
-      in: [{ title: 'Sensex rallies', description: 'IT stocks', url: '#', imageUrl: 'https://placehold.co/300x200?text=IN' }],
-      cn: [{ title: 'Shanghai Composite rises', description: 'Tech rally', url: '#', imageUrl: 'https://placehold.co/300x200?text=CN' }]
+  // Define a simple mock array for each country (fallback)
+  const getMockNews = (countryCode) => {
+    const mockData = {
+      us: [
+        { title: 'US markets rally on tech earnings', description: 'Tech stocks lead gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=US+News' },
+        { title: 'Fed signals rate cuts', description: 'Investors optimistic.', url: '#', imageUrl: 'https://placehold.co/300x200?text=US+News' }
+      ],
+      ng: [
+        { title: 'NGX closes higher as banking stocks rally', description: 'Nigerian bourse sees gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' },
+        { title: 'CBN holds interest rate', description: 'Policy supports economy.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' }
+      ],
+      gb: [
+        { title: 'FTSE 100 hits record high', description: 'Mining and oil stocks surge.', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK+News' },
+        { title: 'Bank of England holds rates', description: 'Pound strengthens.', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK+News' }
+      ],
+      ca: [
+        { title: 'TSX rallies on energy stocks', description: 'Oil prices drive gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Canada+News' },
+        { title: 'Bank of Canada holds key rate', description: 'Inflation moderates.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Canada+News' }
+      ],
+      au: [
+        { title: 'ASX hits new peak', description: 'Mining giants lead.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Australia+News' },
+        { title: 'RBA leaves cash rate unchanged', description: 'Aussie dollar firm.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Australia+News' }
+      ],
+      in: [
+        { title: 'Sensex rallies on IT stocks', description: 'Tech earnings boost.', url: '#', imageUrl: 'https://placehold.co/300x200?text=India+News' },
+        { title: 'RBI keeps repo rate steady', description: 'Inflation under control.', url: '#', imageUrl: 'https://placehold.co/300x200?text=India+News' }
+      ],
+      cn: [
+        { title: 'Shanghai Composite rises on tech rally', description: 'Chinese tech stocks lead.', url: '#', imageUrl: 'https://placehold.co/300x200?text=China+News' },
+        { title: 'PBOC holds interest rates steady', description: 'Central bank cites stable inflation.', url: '#', imageUrl: 'https://placehold.co/300x200?text=China+News' }
+      ]
     };
-    return mock[countryCode] || mock.us;
+    return mockData[countryCode] || mockData.us;
   };
 
   // If no API key, return mock array immediately
   if (!GNEWS_API_KEY) {
-    console.log('GNews API key missing – returning mock news');
-    return res.json(getMockData(country));
+    console.log('No GNews API key – sending mock news array');
+    return res.json(getMockNews(country));
   }
 
   try {
     const apiUrl = `https://gnews.io/api/v4/top-headlines?country=${country}&category=business&apikey=${GNEWS_API_KEY}`;
     const response = await axios.get(apiUrl, { timeout: 8000 });
     const articles = response.data.articles;
-    if (!articles || !Array.isArray(articles) || articles.length === 0) {
-      throw new Error('No articles array');
+
+    // Ensure we have an array
+    if (!articles || !Array.isArray(articles)) {
+      throw new Error('GNews did not return an array');
     }
+
+    if (articles.length === 0) {
+      // If empty array, fallback to mock
+      return res.json(getMockNews(country));
+    }
+
     const formatted = articles.slice(0, 15).map(a => ({
       title: a.title || 'Business News',
       description: a.description || 'Read more...',
@@ -95,11 +124,12 @@ router.get('/news', async (req, res) => {
       imageUrl: a.image || 'https://placehold.co/300x200?text=News',
       publishDate: a.publishedAt || new Date().toISOString()
     }));
+
     return res.json(formatted);
   } catch (err) {
     console.error('GNews error:', err.message);
-    // Return mock array on error
-    return res.json(getMockData(country));
+    // Always return an array on error
+    return res.json(getMockNews(country));
   }
 });
 
