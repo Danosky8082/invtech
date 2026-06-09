@@ -61,27 +61,45 @@ router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
+  // Mock data (always an array)
+  const getMockData = (countryCode) => {
+    const mock = {
+      us: [{ title: 'US markets rally', description: 'Tech leads', url: '#', imageUrl: 'https://placehold.co/300x200?text=US' }],
+      ng: [{ title: 'NGX closes higher', description: 'Banking stocks', url: '#', imageUrl: 'https://placehold.co/300x200?text=NG' }],
+      gb: [{ title: 'FTSE 100 hits record', description: 'Mining surges', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK' }],
+      ca: [{ title: 'TSX rallies', description: 'Energy leads', url: '#', imageUrl: 'https://placehold.co/300x200?text=CA' }],
+      au: [{ title: 'ASX hits peak', description: 'Iron ore', url: '#', imageUrl: 'https://placehold.co/300x200?text=AU' }],
+      in: [{ title: 'Sensex rallies', description: 'IT stocks', url: '#', imageUrl: 'https://placehold.co/300x200?text=IN' }],
+      cn: [{ title: 'Shanghai Composite rises', description: 'Tech rally', url: '#', imageUrl: 'https://placehold.co/300x200?text=CN' }]
+    };
+    return mock[countryCode] || mock.us;
+  };
+
+  // If no API key, return mock array immediately
   if (!GNEWS_API_KEY) {
-    console.log('GNews API key missing – using mock news');
-    return res.json(mockNewsByCountry[country] || mockNewsByCountry.us);
+    console.log('GNews API key missing – returning mock news');
+    return res.json(getMockData(country));
   }
 
   try {
     const apiUrl = `https://gnews.io/api/v4/top-headlines?country=${country}&category=business&apikey=${GNEWS_API_KEY}`;
     const response = await axios.get(apiUrl, { timeout: 8000 });
     const articles = response.data.articles;
-    if (!articles || articles.length === 0) throw new Error('No articles');
+    if (!articles || !Array.isArray(articles) || articles.length === 0) {
+      throw new Error('No articles array');
+    }
     const formatted = articles.slice(0, 15).map(a => ({
-      title: a.title,
-      description: a.description,
-      url: a.url,
+      title: a.title || 'Business News',
+      description: a.description || 'Read more...',
+      url: a.url || '#',
       imageUrl: a.image || 'https://placehold.co/300x200?text=News',
-      publishDate: a.publishedAt
+      publishDate: a.publishedAt || new Date().toISOString()
     }));
-    res.json(formatted);
+    return res.json(formatted);
   } catch (err) {
     console.error('GNews error:', err.message);
-    res.json(mockNewsByCountry[country] || mockNewsByCountry.us);
+    // Return mock array on error
+    return res.json(getMockData(country));
   }
 });
 
