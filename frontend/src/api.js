@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production'
-    ? 'https://invtech-cpeq6hs7l-daniels-projects-d4f22975.vercel.app/api'   // ← Live URL
+    ? 'https://invtech-backend-o317rmpke-daniels-projects-d4f22975.vercel.app/api'   // ← Live URL
     : 'http://localhost:5000/api'
 });
 
