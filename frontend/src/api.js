@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.NODE_ENV === 'production'
-    ? 'https://https://invtech-8s88.vercel.app/api'   
-    : 'http://localhost:5000/api'
+ baseURL: process.env.NODE_ENV === 'production'
+  ? '' // Use relative paths on production
+  : 'http://localhost:5000/api'
 });
 
 API.interceptors.request.use((req) => {
