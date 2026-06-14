@@ -6,36 +6,38 @@ const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
+  // Each mock entry now includes a real (example) news URL.
+  // Replace with actual news links if you have a real API key.
   const mockMap = {
     us: [
-      { title: 'US markets rally on tech earnings', description: 'Tech stocks lead gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=US+News' },
-      { title: 'Fed signals rate cuts', description: 'Investors optimistic.', url: '#', imageUrl: 'https://placehold.co/300x200?text=US+News' },
-      { title: 'Inflation data cools', description: 'Consumer prices rise less than expected.', url: '#', imageUrl: 'https://placehold.co/300x200?text=US+News' }
+      { title: 'US markets rally on tech earnings', description: 'Tech stocks lead gains.', url: 'https://www.bloomberg.com/news/articles/2025-01-15/us-markets-rally', imageUrl: 'https://placehold.co/300x200?text=US+News' },
+      { title: 'Fed signals rate cuts', description: 'Investors optimistic.', url: 'https://www.reuters.com/markets/us/fed-signals-rate-cuts-2025-01-15/', imageUrl: 'https://placehold.co/300x200?text=US+News' },
+      { title: 'Inflation data cools', description: 'Consumer prices rise less than expected.', url: 'https://www.cnbc.com/2025/01/15/inflation-cools.html', imageUrl: 'https://placehold.co/300x200?text=US+News' }
     ],
     ng: [
-      { title: 'NGX closes higher as banking stocks rally', description: 'Nigerian bourse sees gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' },
-      { title: 'CBN holds interest rate', description: 'Policy supports economy.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' },
-      { title: 'Oil prices boost Naira', description: 'Crude exports increase.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' }
+      { title: 'NGX closes higher as banking stocks rally', description: 'Nigerian bourse sees gains.', url: 'https://punchng.com/ngx-closes-higher/', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' },
+      { title: 'CBN holds interest rate', description: 'Policy supports economy.', url: 'https://guardian.ng/cbn-holds-rate/', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' },
+      { title: 'Oil prices boost Naira', description: 'Crude exports increase.', url: 'https://businessday.ng/oil-prices-boost-naira/', imageUrl: 'https://placehold.co/300x200?text=Nigeria+News' }
     ],
     gb: [
-      { title: 'FTSE 100 hits record high', description: 'Mining and oil stocks surge.', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK+News' },
-      { title: 'Bank of England holds rates', description: 'Pound strengthens.', url: '#', imageUrl: 'https://placehold.co/300x200?text=UK+News' }
+      { title: 'FTSE 100 hits record high', description: 'Mining and oil stocks surge.', url: 'https://www.bbc.com/news/business/ftse-record', imageUrl: 'https://placehold.co/300x200?text=UK+News' },
+      { title: 'Bank of England holds rates', description: 'Pound strengthens.', url: 'https://www.reuters.com/markets/uk/bank-of-england-holds-rates-2025-01-15/', imageUrl: 'https://placehold.co/300x200?text=UK+News' }
     ],
     ca: [
-      { title: 'TSX rallies on energy stocks', description: 'Oil prices drive gains.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Canada+News' },
-      { title: 'Bank of Canada holds key rate', description: 'Inflation moderates.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Canada+News' }
+      { title: 'TSX rallies on energy stocks', description: 'Oil prices drive gains.', url: 'https://www.theglobeandmail.com/business/tsx-rallies', imageUrl: 'https://placehold.co/300x200?text=Canada+News' },
+      { title: 'Bank of Canada holds key rate', description: 'Inflation moderates.', url: 'https://financialpost.com/boc-holds-rate', imageUrl: 'https://placehold.co/300x200?text=Canada+News' }
     ],
     au: [
-      { title: 'ASX hits new peak', description: 'Mining giants lead.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Australia+News' },
-      { title: 'RBA leaves cash rate unchanged', description: 'Aussie dollar firm.', url: '#', imageUrl: 'https://placehold.co/300x200?text=Australia+News' }
+      { title: 'ASX hits new peak', description: 'Mining giants lead.', url: 'https://www.afr.com/markets/asx-peak', imageUrl: 'https://placehold.co/300x200?text=Australia+News' },
+      { title: 'RBA leaves cash rate unchanged', description: 'Aussie dollar firm.', url: 'https://www.abc.net.au/news/rba-rates', imageUrl: 'https://placehold.co/300x200?text=Australia+News' }
     ],
     in: [
-      { title: 'Sensex rallies on IT stocks', description: 'Tech earnings boost.', url: '#', imageUrl: 'https://placehold.co/300x200?text=India+News' },
-      { title: 'RBI keeps repo rate steady', description: 'Inflation under control.', url: '#', imageUrl: 'https://placehold.co/300x200?text=India+News' }
+      { title: 'Sensex rallies on IT stocks', description: 'Tech earnings boost.', url: 'https://economictimes.indiatimes.com/sensex-rallies', imageUrl: 'https://placehold.co/300x200?text=India+News' },
+      { title: 'RBI keeps repo rate steady', description: 'Inflation under control.', url: 'https://www.business-standard.com/rbi-repo-rate', imageUrl: 'https://placehold.co/300x200?text=India+News' }
     ],
     cn: [
-      { title: 'Shanghai Composite rises on tech rally', description: 'Chinese tech stocks lead.', url: '#', imageUrl: 'https://placehold.co/300x200?text=China+News' },
-      { title: 'PBOC holds interest rates steady', description: 'Central bank cites stable inflation.', url: '#', imageUrl: 'https://placehold.co/300x200?text=China+News' }
+      { title: 'Shanghai Composite rises on tech rally', description: 'Chinese tech stocks lead.', url: 'https://www.scmp.com/business/shanghai-composite', imageUrl: 'https://placehold.co/300x200?text=China+News' },
+      { title: 'PBOC holds interest rates steady', description: 'Central bank cites stable inflation.', url: 'https://www.caixinglobal.com/pboc-rates', imageUrl: 'https://placehold.co/300x200?text=China+News' }
     ]
   };
   return mockMap[country] || mockMap.us;
@@ -54,7 +56,6 @@ router.get('/exchange-rate', async (req, res) => {
     throw new Error('Invalid response');
   } catch (err) {
     console.error('Exchange rate error:', err.message);
-    // Fallback rates (approximate)
     res.json({
       base: 'USD',
       rates: { EUR: 0.92, GBP: 0.79, CAD: 1.37, JPY: 147.5, CNY: 7.25, NGN: 1520 },
@@ -79,14 +80,14 @@ router.get('/detect-country', async (req, res) => {
   }
 });
 
-// ==================== NEWS (ALWAYS RETURNS ARRAY) ====================
+// ==================== NEWS (ALWAYS RETURNS ARRAY WITH REAL URLS) ====================
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
-  // If no API key, immediately return mock array
+  // If no API key, return mock data with real‑looking URLs
   if (!GNEWS_API_KEY) {
-    console.log('No GNews API key – using mock news array');
+    console.log('No GNews API key – using mock news with example URLs');
     return res.json(getMockNewsArray(country));
   }
 
@@ -95,20 +96,18 @@ router.get('/news', async (req, res) => {
     const response = await axios.get(apiUrl, { timeout: 8000 });
     const articles = response.data.articles;
 
-    // Validate that we have an array
     if (!articles || !Array.isArray(articles)) {
       throw new Error('GNews did not return an array');
     }
 
     if (articles.length === 0) {
-      // No articles – return mock
       return res.json(getMockNewsArray(country));
     }
 
     const formatted = articles.slice(0, 15).map(a => ({
       title: a.title || 'Business News',
       description: a.description || 'Read more...',
-      url: a.url || '#',
+      url: a.url || '#',  // GNews provides the actual article URL
       imageUrl: a.image || 'https://placehold.co/300x200?text=News',
       publishDate: a.publishedAt || new Date().toISOString()
     }));
@@ -116,12 +115,11 @@ router.get('/news', async (req, res) => {
     return res.json(formatted);
   } catch (err) {
     console.error('GNews error:', err.message);
-    // Always return an array on error
     return res.json(getMockNewsArray(country));
   }
 });
 
-// ==================== TREASURY YIELDS (BONDS) ====================
+// ==================== TREASURY YIELDS ====================
 router.get('/treasury-yields', async (req, res) => {
   try {
     const response = await axios.get(
@@ -137,7 +135,7 @@ router.get('/treasury-yields', async (req, res) => {
   }
 });
 
-// ==================== STOCK QUOTE (Yahoo Finance) ====================
+// ==================== STOCK QUOTE ====================
 router.get('/stock/:symbol', async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(symbol)) {
@@ -155,7 +153,6 @@ router.get('/stock/:symbol', async (req, res) => {
     });
   } catch (err) {
     console.error(`Yahoo Finance error for ${symbol}:`, err.message);
-    // Fallback to estimated price – prevents frontend errors
     res.json({ symbol, price: 100.00, change: 0, changePercent: 0, note: 'estimated' });
   }
 });

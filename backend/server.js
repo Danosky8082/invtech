@@ -7,13 +7,17 @@ const marketRoutes = require('./routes/market');
 const simulationRoutes = require('./routes/simulation');
 
 const app = express();
-app.use(cors()); // allow all (will be ignored when on same domain)
+
+// ✅ Allow all origins (fixes CORS temporarily)
+app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/simulation', simulationRoutes);
 
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
