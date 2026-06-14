@@ -8,22 +8,11 @@ const simulationRoutes = require('./routes/simulation');
 
 const app = express();
 
-// ✅ CORS – allow only your frontend URL
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://invtech-frontend-p9bsvf548-daniel-apps-projects.vercel.app']   // your frontend URL
-  : ['http://localhost:3000'];             // local dev
-
+// ✅ Simplified CORS – allow all origins (for testing)
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
 
 app.use(express.json());
@@ -33,7 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/simulation', simulationRoutes);
 
-// Health check endpoint (so you can verify backend is alive)
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
