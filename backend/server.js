@@ -8,9 +8,9 @@ const simulationRoutes = require('./routes/simulation');
 
 const app = express();
 
-// ✅ CORS – allow only your frontend URL (replace if different)
+// ✅ CORS – allow only your frontend URL
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://invtech-8s88.vercel.app']   // your frontend URL
+  ? ['https://invtech-frontend-p9bsvf548-daniel-apps-projects.vercel.app']   // your frontend URL
   : ['http://localhost:3000'];             // local dev
 
 app.use(cors({
