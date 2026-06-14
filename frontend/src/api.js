@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: process.env.NODE_ENV === 'production'
-    ? 'https://your-backend-url.vercel.app/api'   
+    ? 'https://https://invtech-8s88.vercel.app/api'   
     : 'http://localhost:5000/api'
 });
 
