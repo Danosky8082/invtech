@@ -7,7 +7,7 @@ const marketRoutes = require('./routes/market');
 const simulationRoutes = require('./routes/simulation');
 
 const app = express();
-app.use(cors()); // ✅ Allow all origins (fixes CORS)
+app.use(cors()); // allow all (will be ignored when on same domain)
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
