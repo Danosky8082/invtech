@@ -1,9 +1,9 @@
 {
   "version": 2,
   "builds": [
-    { "src": "backend/server.js", "use": "@vercel/node" }
+    { "src": "backend/api/health.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "backend/server.js" }
+    { "src": "/api/health", "dest": "backend/api/health.js" }
   ]
 }
