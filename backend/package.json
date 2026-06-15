@@ -1,9 +1,11 @@
 {
   "name": "invtech-backend",
   "version": "1.0.0",
-  "main": "api/index.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "node api/index.js"
+    "start": "node server.js",
+    "postinstall": "npx prisma generate",
+    "dev": "node server.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -16,5 +18,8 @@
     "jsonwebtoken": "^9.0.3",
     "rss-parser": "^3.13.0",
     "yahoo-finance2": "^3.15.3"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
   }
 }
