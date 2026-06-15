@@ -13,7 +13,7 @@ const Signup = () => {
     try {
       const res = await signup({ username, email, password });
       sessionStorage.setItem('token', res.data.token);
-      sessionStorage.setItem('user', JSON.stringify(res.data.user));
+sessionStorage.setItem('user', JSON.stringify(res.data.user));
       sessionStorage.setItem('session_start', Date.now().toString()); // <-- ADD THIS LINE
       window.location.href = '/dashboard';
     } catch (err) {

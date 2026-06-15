@@ -11,8 +11,8 @@ const Login = () => {
     setError('');
     try {
       const res = await login({ email, password });
-      sessionStorage.setItem('token', res.data.token);
-      sessionStorage.setItem('user', JSON.stringify(res.data.user));
+sessionStorage.setItem('token', res.data.token);
+sessionStorage.setItem('user', JSON.stringify(res.data.user));
       sessionStorage.setItem('session_start', Date.now().toString()); // <-- ADD THIS LINE
       window.location.href = '/dashboard';
     } catch (err) {
