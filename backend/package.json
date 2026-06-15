@@ -7,6 +7,9 @@
     "postinstall": "npx prisma generate",
     "dev": "node server.js"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "@sharmag44/currency-converter": "^1.0.2",
