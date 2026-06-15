@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int     @id @default(autoincrement())
+  username       String  @unique
+  email          String  @unique
+  passwordHash   String  @map("password_hash")
+  virtualBalance Float   @default(10000) @map("virtual_balance")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  simulations    UserSimulation[]
+
+  @@map("users")
+}
+
+model Asset {
+  id             Int     @id @default(autoincrement())
+  name           String
+  type           String   // "stock" or "bond"
+  ticker         String?  @unique
+  expectedReturn Float    @map("expected_return")
+  riskLevel      String   @map("risk_level") // "low", "medium", "high"
+
+  simulations    UserSimulation[]
+
+  @@map("assets")
+}
+
+model UserSimulation {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  assetId        Int      @map("asset_id")
+  amountInvested Float    @map("amount_invested")
+  expectedProfit Float    @map("expected_profit")
+  originalAmount     Float?   @map("original_amount")      // amount in user's chosen currency
+  originalCurrency   String?  @map("original_currency")    // currency code (USD, NGN, etc.)
+  simulatedAt    DateTime @default(now()) @map("simulated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  asset  Asset  @relation(fields: [assetId], references: [id])
+
+  @@map("user_simulations")
+}
