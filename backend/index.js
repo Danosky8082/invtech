@@ -1,3 +1,10 @@
-module.exports = (req, res) => {
-  res.status(200).json({ message: 'Backend alive', timestamp: new Date().toISOString() });
-};
+const express = require('express');
+const app = express();
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Add other routes later
+
+module.exports = app;
