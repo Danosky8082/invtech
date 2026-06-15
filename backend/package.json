@@ -8,7 +8,7 @@
     "dev": "node server.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^6.19.0",
     "@sharmag44/currency-converter": "^1.0.2",
     "axios": "^1.18.0",
     "bcrypt": "^5.1.1",

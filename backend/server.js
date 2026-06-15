@@ -1,3 +1,19 @@
+const { execSync } = require('child_process');
+const fs = require('fs');
+
+// Check if Prisma Client is generated; if not, generate it
+const prismaClientPath = './node_modules/.prisma/client';
+if (!fs.existsSync(prismaClientPath)) {
+  console.log('⚠️ Prisma Client not found. Generating...');
+  try {
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    console.log('✅ Prisma Client generated.');
+  } catch (err) {
+    console.error('❌ Failed to generate Prisma Client:', err.message);
+    process.exit(1);
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
