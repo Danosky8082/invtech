@@ -10,7 +10,7 @@ const Navbar = () => {
     sessionStorage.clear();
     localStorage.clear();
     navigate('/');
-    window.location.reload(); // force refresh to update navbar state
+    window.location.reload();
   };
 
   return (
@@ -19,19 +19,19 @@ const Navbar = () => {
         <Link to="/">🏦 InvTech</Link>
       </div>
       <div className="navbar-links">
+        {/* ✅ These links are always visible */}
+        <Link to="/faq" className="nav-link">FAQ</Link>
+        <Link to="/contact" className="nav-link">Contact</Link>
+
         {!token ? (
           <>
             <Link to="/login" className="nav-link">Login</Link>
             <Link to="/signup" className="nav-link">Sign Up</Link>
-            <Link to="/contact" className="nav-link">Contact</Link>
-            <Link to="/faq" className="nav-link">FAQ</Link>
           </>
         ) : (
           <>
             <span className="nav-user">👋 {user?.username || 'Investor'}</span>
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
-             <Link to="/contact" className="nav-link">Contact</Link>
-            <Link to="/faq" className="nav-link">FAQ</Link>
             <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
           </>
         )}
