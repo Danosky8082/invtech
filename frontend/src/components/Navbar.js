@@ -30,6 +30,8 @@ const Navbar = () => {
           <>
             <span className="nav-user">👋 {user?.username || 'Investor'}</span>
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
+             <Link to="/contact" className="nav-link">Contact</Link>
+            <Link to="/faq" className="nav-link">FAQ</Link>
             <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
           </>
         )}
