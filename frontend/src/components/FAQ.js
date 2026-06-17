@@ -24,11 +24,15 @@ const FAQ = () => {
     },
     {
       q: 'Can I invest in real money through this app?',
-      a: 'No. InvTech is purely educational. We do not facilitate real trading or investing. It is designed to help you learn and practice before making real-world decisions.'
+      a: 'No. InvTech is purely decision making software. We do not facilitate real trading or investing. It is designed to help you learn and practice before making real-world decisions.'
     },
     {
       q: 'How do I delete my account?',
-      a: 'Contact our support team at support@invtech.com and we will assist you with account deletion.'
+      a: 'Contact our support team at support@invtech.com or call us via mobile line 07065147998 and we will assist you with account deletion.'
+      },
+    {
+      q: 'Who is this software for?',
+      a: 'This application is for everyone; Young investors, novice, banker etc.'
     }
   ];
 
