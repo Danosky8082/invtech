@@ -5,12 +5,37 @@ const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Helper: Format currency
+// ==================== FALLBACK EXCHANGE RATES ====================
+const FALLBACK_RATES = {
+  USD: 1,
+  NGN: 1520,
+  EUR: 0.92,
+  GBP: 0.79,
+  CAD: 1.37,
+  JPY: 147.5,
+  CNY: 7.25
+};
+
+// ==================== HELPER: CONVERT WITH FALLBACK ====================
+async function convertWithFallback(fromCurrency, toCurrency, amount) {
+  if (fromCurrency === toCurrency) return amount;
+  try {
+    const result = await convertCurrency(fromCurrency, toCurrency, amount);
+    return result.amount;
+  } catch (err) {
+    console.log(`Currency conversion fallback: ${fromCurrency} -> ${toCurrency}`);
+    const fromRate = FALLBACK_RATES[fromCurrency] || 1;
+    const toRate = FALLBACK_RATES[toCurrency] || 1;
+    return (amount / fromRate) * toRate;
+  }
+}
+
+// ==================== HELPER: FORMAT CURRENCY ====================
 function formatCurrency(value, decimals = 2) {
   return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
 }
 
-// Helper: Generate detailed advice with user's currency
+// ==================== HELPER: GENERATE ADVICE ====================
 function generateAdvice(asset, amountInUserCurrency, userCurrency, userSymbol, expectedReturnPercent, livePriceInUserCurrency) {
   const { name, type, riskLevel, expectedReturn, ticker } = asset;
   const percentageReturn = (expectedReturn * 100).toFixed(1);
@@ -85,7 +110,7 @@ function generateAdvice(asset, amountInUserCurrency, userCurrency, userSymbol, e
   return advice;
 }
 
-// Helper: Compute projections and return values in user's currency
+// ==================== HELPER: COMPUTE PROJECTIONS ====================
 function computeProjections(usdAmount, expectedReturn, yearsArray, toCurrency, exchangeRateFromUSD) {
   const projections = [];
   for (const years of yearsArray) {
@@ -107,7 +132,7 @@ function computeProjections(usdAmount, expectedReturn, yearsArray, toCurrency, e
   return projections;
 }
 
-// GET assets
+// ==================== GET ASSETS ====================
 router.get('/assets', auth, async (req, res) => {
   try {
     const assets = await prisma.asset.findMany({
@@ -120,7 +145,7 @@ router.get('/assets', auth, async (req, res) => {
   }
 });
 
-// POST simulate
+// ==================== POST SIMULATE ====================
 router.post('/simulate', auth, async (req, res) => {
   const { assetId, amountInvested, currency = 'USD' } = req.body;
   const userId = req.user.id;
@@ -133,53 +158,59 @@ router.post('/simulate', auth, async (req, res) => {
     const asset = await prisma.asset.findUnique({ where: { id: assetId } });
     if (!asset) return res.status(404).json({ msg: 'Asset not found' });
 
-    // Convert amount to USD (internal)
+    // Step 1: Convert amount to USD (internal) using fallback
     let usdAmount = amountInvested;
-    let exchangeRateToUSD = 1;
     if (currency !== 'USD') {
-      try {
-        const result = await convertCurrency(currency, 'USD', amountInvested);
-        usdAmount = result.amount;
-        exchangeRateToUSD = usdAmount / amountInvested;
-      } catch (err) {
-        console.error('Currency conversion error:', err.message);
-        return res.status(400).json({ msg: `Could not convert ${currency} to USD.` });
-      }
+      usdAmount = await convertWithFallback(currency, 'USD', amountInvested);
     }
 
-    // Get exchange rate to convert USD back to user's currency
-    let exchangeRateFromUSD = 1;
-    if (currency !== 'USD') {
-      try {
-        const backResult = await convertCurrency('USD', currency, 1);
-        exchangeRateFromUSD = backResult.amount;
-      } catch (err) { /* fallback to 1 */ }
-    }
-
+    // Step 2: Calculate profit in USD
     const profitUSD = usdAmount * asset.expectedReturn;
     const totalReturnUSD = usdAmount + profitUSD;
 
-    // Convert results to user's currency for display
-    const profitDisplay = currency !== 'USD' ? profitUSD * exchangeRateFromUSD : profitUSD;
-    const totalDisplay = currency !== 'USD' ? totalReturnUSD * exchangeRateFromUSD : totalReturnUSD;
+    // Step 3: Convert results back to user's currency using fallback
+    let profitDisplay = profitUSD;
+    let totalDisplay = totalReturnUSD;
+    if (currency !== 'USD') {
+      profitDisplay = await convertWithFallback('USD', currency, profitUSD);
+      totalDisplay = await convertWithFallback('USD', currency, totalReturnUSD);
+    }
 
-    // Store simulation (in USD)
+    // Step 4: Store simulation in database (always in USD)
     await prisma.userSimulation.create({
-      data: { userId, assetId, amountInvested: usdAmount, expectedProfit: profitUSD },
+      data: {
+        userId,
+        assetId,
+        amountInvested: usdAmount,
+        expectedProfit: profitUSD,
+      },
     });
 
-    // Live price (if available) and convert to user's currency
+    // Step 5: Live price (if available) and convert to user's currency
     let livePrice = null;
     let livePriceInUserCurrency = null;
     if (asset.ticker) {
       try {
         const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${asset.ticker}`);
         livePrice = stockRes.data.price;
-        livePriceInUserCurrency = currency !== 'USD' ? livePrice * exchangeRateFromUSD : livePrice;
+        if (currency !== 'USD' && livePrice) {
+          livePriceInUserCurrency = await convertWithFallback('USD', currency, livePrice);
+        } else {
+          livePriceInUserCurrency = livePrice;
+        }
       } catch (err) { /* silent */ }
     }
 
-    // Compute projections
+    // Step 6: Compute projections
+    let exchangeRateFromUSD = 1;
+    if (currency !== 'USD') {
+      try {
+        const backResult = await convertCurrency('USD', currency, 1);
+        exchangeRateFromUSD = backResult.amount;
+      } catch (err) {
+        exchangeRateFromUSD = FALLBACK_RATES[currency] || 1;
+      }
+    }
     const projections = computeProjections(
       usdAmount,
       asset.expectedReturn,
@@ -188,16 +219,14 @@ router.post('/simulate', auth, async (req, res) => {
       exchangeRateFromUSD
     );
 
-   // Currency symbol (uncommented and defined)
-const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
-const symbol = currencySymbols[currency] || '$';
+    // Step 7: Currency symbol for display
+    const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
+    const symbol = currencySymbols[currency] || '$';
 
-
-
-    // Generate advice – now using the **amount in user's currency**
+    // Step 8: Generate advice
     const advice = generateAdvice(
       asset,
-      amountInvested,                   // amount in user's currency
+      amountInvested,
       currency,
       symbol,
       asset.expectedReturn,
@@ -222,7 +251,7 @@ const symbol = currencySymbols[currency] || '$';
   }
 });
 
-// GET history
+// ==================== GET HISTORY ====================
 router.get('/history', auth, async (req, res) => {
   try {
     const history = await prisma.userSimulation.findMany({
@@ -237,7 +266,7 @@ router.get('/history', auth, async (req, res) => {
   }
 });
 
-// DELETE history
+// ==================== DELETE HISTORY ====================
 router.delete('/history/:id', auth, async (req, res) => {
   const { id } = req.params;
   try {

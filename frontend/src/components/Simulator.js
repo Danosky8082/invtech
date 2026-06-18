@@ -24,7 +24,7 @@ const Simulator = ({ asset }) => {
     }
   };
 
-  // Helper to get currency symbol (used in the JSX)
+  // Helper to get currency symbol (fallback if amountSymbol is not provided)
   const getCurrencySymbol = (curr) => {
     const symbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
     return symbols[curr] || curr;
@@ -58,11 +58,11 @@ const Simulator = ({ asset }) => {
         <div className="result-card">
           <p><strong>{result.assetName}</strong> – Risk: <span className={`risk-${result.riskLevel}`}>{result.riskLevel}</span></p>
           {result.livePrice && (
-            <p>Current market price: {getCurrencySymbol(result.amountCurrency)}{result.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })} {result.amountCurrency}</p>
+            <p>Current market price: {result.amountSymbol}{result.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })} {result.amountCurrency}</p>
           )}
-          <p>Invested: {getCurrencySymbol(result.amountCurrency)}{result.amountInvested.toLocaleString()} {result.amountCurrency}</p>
-          <p>Expected profit: {getCurrencySymbol(result.amountCurrency)}{result.expectedProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })} {result.amountCurrency}</p>
-          <p>Total return: {getCurrencySymbol(result.amountCurrency)}{result.totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2 })} {result.amountCurrency}</p>
+          <p>Invested: {result.amountSymbol}{result.amountInvested.toLocaleString()} {result.amountCurrency}</p>
+          <p>Expected profit: {result.amountSymbol}{result.expectedProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p>Total return: {result.amountSymbol}{result.totalReturn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
 
           {result.projections && result.projections.length > 0 && (
             <div className="projections-section">
@@ -71,9 +71,9 @@ const Simulator = ({ asset }) => {
                 {result.projections.map(p => (
                   <div key={p.years} className="projection-card">
                     <div className="projection-years">{p.years} year{p.years !== 1 ? 's' : ''}</div>
-                    <div className="projection-value">{getCurrencySymbol(result.amountCurrency)}{p.futureValue.toFixed(2)}</div>
+                    <div className="projection-value">{result.amountSymbol}{p.futureValue.toFixed(2)}</div>
                     <div className={`projection-profit ${p.profit >= 0 ? 'positive' : 'negative'}`}>
-                      {p.profit >= 0 ? '+' : ''}{getCurrencySymbol(result.amountCurrency)}{p.profit.toFixed(2)} ({p.percentageReturn}%)
+                      {p.profit >= 0 ? '+' : ''}{result.amountSymbol}{p.profit.toFixed(2)} ({p.percentageReturn}%)
                     </div>
                   </div>
                 ))}
