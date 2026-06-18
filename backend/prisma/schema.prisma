@@ -34,14 +34,16 @@ model Asset {
 }
 
 model UserSimulation {
-  id             Int      @id @default(autoincrement())
-  userId         Int      @map("user_id")
-  assetId        Int      @map("asset_id")
-  amountInvested Float    @map("amount_invested")
-  expectedProfit Float    @map("expected_profit")
-  originalAmount     Float?   @map("original_amount")      // amount in user's chosen currency
-  originalCurrency   String?  @map("original_currency")    // currency code (USD, NGN, etc.)
-  simulatedAt    DateTime @default(now()) @map("simulated_at")
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  assetId         Int      @map("asset_id")
+  amountInvested  Float    @map("amount_invested")
+  expectedProfit  Float    @map("expected_profit")
+  simulatedAt     DateTime @default(now()) @map("simulated_at")
+
+  // ✅ Original currency fields (store what the user entered)
+  originalAmount  Float    @map("original_amount")
+  originalCurrency String  @map("original_currency") @default("USD")
 
   user   User   @relation(fields: [userId], references: [id])
   asset  Asset  @relation(fields: [assetId], references: [id])

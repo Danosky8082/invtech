@@ -183,6 +183,8 @@ router.post('/simulate', auth, async (req, res) => {
         assetId,
         amountInvested: usdAmount,
         expectedProfit: profitUSD,
+        originalAmount: amountInvested,     
+        originalCurrency: currency, 
       },
     });
 
