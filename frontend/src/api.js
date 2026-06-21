@@ -20,4 +20,7 @@ export const detectCountry = () => API.get('/market/detect-country');
 export const getAssets = () => API.get('/simulation/assets');
 export const simulateInvestment = (data) => API.post('/simulation/simulate', data);
 export const getHistory = () => API.get('/simulation/history');
+export const getForecast = (ticker) => API.get(`/predictive/forecast/${ticker}`);
+export const getSentiment = (country = 'us') => API.get(`/predictive/sentiment?country=${country}`);
+export const getRiskProfile = () => API.get('/predictive/risk-profile');
 export { API as api };

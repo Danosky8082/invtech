@@ -22,6 +22,7 @@ const Navbar = () => {
         {/* ✅ These links are always visible */}
         <Link to="/faq" className="nav-link">FAQ</Link>
         <Link to="/contact" className="nav-link">Contact</Link>
+        <Link to="/predictive" className="nav-link">📊 Insights</Link>
 
         {!token ? (
           <>

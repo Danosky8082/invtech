@@ -24,12 +24,6 @@ const Simulator = ({ asset }) => {
     }
   };
 
-  // Helper to get currency symbol (fallback if amountSymbol is not provided)
-  const getCurrencySymbol = (curr) => {
-    const symbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
-    return symbols[curr] || curr;
-  };
-
   return (
     <div>
       <div className="simulator-inputs">

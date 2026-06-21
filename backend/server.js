@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const predictiveRoutes = require('./routes/predictive');
 
 // Check if Prisma Client is generated; if not, generate it
 const prismaClientPath = './node_modules/.prisma/client';
@@ -29,6 +30,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/simulation', simulationRoutes);
+app.use('/api/predictive', predictiveRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

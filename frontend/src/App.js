@@ -7,6 +7,7 @@ import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
 import Contact from './components/Contact';
 import FAQ from './components/FAQ';
+import Predictive from './components/Predictive';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/predictive" element={<Predictive />} />
       </Routes>
     </BrowserRouter>
   );
