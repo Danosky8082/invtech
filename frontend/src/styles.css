@@ -1235,4 +1235,155 @@ marquee {
     .navbar-brand a {
         font-size: 1.2rem;
     }
+
+        /* ---- Navbar with hamburger ---- */
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #0f2b4f 100%);
+            padding: 0.8rem 1.5rem;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+    
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+    
+        .navbar-brand a {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+    
+        /* Hamburger toggle button */
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0 0.5rem;
+        }
+    
+        .hamburger-icon {
+            display: block;
+            line-height: 1;
+        }
+    
+        /* Nav links - desktop */
+        .navbar-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+    
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+    
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+    
+        .nav-user {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+    
+        .nav-logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+    
+        .nav-logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    
+        /* ---- Mobile ---- */
+        @media (max-width: 768px) {
+            .navbar-toggle {
+                display: block;
+            }
+    
+            .navbar-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #0f2b4f;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                visibility: hidden;
+                opacity: 0;
+                transition: max-height 0.4s ease, opacity 0.3s ease, visibility 0.3s;
+                border-radius: 0 0 12px 12px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+    
+            .navbar-links-open {
+                max-height: 500px;
+                visibility: visible;
+                opacity: 1;
+                padding: 1rem 1.5rem;
+            }
+    
+            .navbar-links .nav-link,
+            .navbar-links .nav-user,
+            .navbar-links .nav-logout-btn {
+                padding: 0.7rem 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                width: 100%;
+                text-align: left;
+                font-size: 1rem;
+            }
+    
+            .navbar-links .nav-user {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                margin-bottom: 0.2rem;
+            }
+    
+            .navbar-links .nav-logout-btn {
+                background: rgba(255, 255, 255, 0.08);
+                border: none;
+                text-align: left;
+                border-radius: 0;
+            }
+    
+            .navbar-links .nav-logout-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+    
+            .navbar-brand a {
+                font-size: 1.2rem;
+            }
+        }
 }
