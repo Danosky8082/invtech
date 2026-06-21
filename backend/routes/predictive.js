@@ -9,14 +9,9 @@ const router = express.Router();
 function calculateMovingAverage(data, window) {
   const result = [];
   for (let i = 0; i < data.length; i++) {
-    if (i < window - 1) {
-      result.push(null);
-      continue;
-    }
+    if (i < window - 1) { result.push(null); continue; }
     let sum = 0;
-    for (let j = 0; j < window; j++) {
-      sum += data[i - j];
-    }
+    for (let j = 0; j < window; j++) sum += data[i - j];
     result.push(sum / window);
   }
   return result;
@@ -30,7 +25,7 @@ function calculateVolatility(prices) {
   return Math.sqrt(variance);
 }
 
-// ==================== GET FORECAST ====================
+// ==================== FORECAST ====================
 router.get('/forecast/:ticker', auth, async (req, res) => {
   const { ticker } = req.params;
   try {
@@ -60,7 +55,16 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     }
 
     if (!historical || historical.length === 0) {
-      return res.status(404).json({ error: 'No data found for this ticker' });
+      return res.json({
+        ticker,
+        currentPrice: 100.00,
+        volatility: 0.02,
+        trend: 0,
+        historical: { dates: [], prices: [], ma7: [], ma30: [] },
+        forecast: { dates: [], prices: [], upper: [], lower: [] },
+        recommendation: { signal: 'HOLD', confidence: 'Low' },
+        note: 'No data available'
+      });
     }
 
     const prices = historical.map(d => d.close);
@@ -84,7 +88,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + i);
       forecastDates.push(futureDate.toISOString().split('T')[0]);
-      
       const projectedPrice = currentPrice * (1 + (trend * (i / 30)));
       forecastPrices.push(projectedPrice);
       forecastUpper.push(projectedPrice * (1 + volatility * 0.5));
@@ -94,7 +97,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     res.json({
       ticker,
       currentPrice,
-      volatility,
+      volatility: volatility * 100,
       trend: trend * 100,
       historical: {
         dates: dates.slice(-30),
@@ -128,7 +131,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
   }
 });
 
-// ==================== GET SENTIMENT ====================
+// ==================== SENTIMENT ====================
 router.get('/sentiment', auth, async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
@@ -182,23 +185,21 @@ router.get('/sentiment', auth, async (req, res) => {
   }
 });
 
-// ==================== GET RISK PROFILE ====================
+// ==================== RISK PROFILE ====================
 router.get('/risk-profile', auth, async (req, res) => {
   try {
     const history = await prisma.userSimulation.findMany({
       where: { userId: req.user.id },
-      include: { asset: true },
+      include: { 
+        asset: { select: { name: true, type: true, riskLevel: true } }
+      },
     });
 
-    if (history.length === 0) {
+    // If no history, return default
+    if (!history || history.length === 0) {
       return res.json({
         riskTolerance: 'medium',
-        recommendedAllocation: {
-          stocks: 60,
-          bonds: 30,
-          crypto: 5,
-          cash: 5,
-        },
+        recommendedAllocation: { stocks: 60, bonds: 30, crypto: 5, cash: 5 },
         message: 'Start simulating to get personalized recommendations!'
       });
     }
@@ -229,7 +230,12 @@ router.get('/risk-profile', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Risk profile error:', err.message);
-    res.status(500).json({ error: 'Failed to calculate risk profile' });
+    // Return default instead of 500
+    res.json({
+      riskTolerance: 'medium',
+      recommendedAllocation: { stocks: 60, bonds: 30, crypto: 5, cash: 5 },
+      message: 'Unable to calculate risk profile. Start simulating to get personalized recommendations!'
+    });
   }
 });
 

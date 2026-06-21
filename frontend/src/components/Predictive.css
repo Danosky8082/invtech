@@ -103,6 +103,65 @@
     --glass-bg: rgba(26, 39, 68, 0.8);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --signal-buy-bg: #1a3a2a;
+    --signal-buy-text: #66bb6a;
+    --signal-sell-bg: #3a1a1a;
+    --signal-sell-text: #ef5350;
+    --signal-hold-bg: #3a2a1a;
+    --signal-hold-text: #ffa726;
+    --positive-color: #66bb6a;
+    --negative-color: #ef5350;
+    --sentiment-positive: #66bb6a;
+    --sentiment-negative: #ef5350;
+    --sentiment-neutral: #ffa726;
+    --risk-aggressive-bg: #3a1a1a;
+    --risk-aggressive-text: #ef5350;
+    --risk-conservative-bg: #1a3a2a;
+    --risk-conservative-text: #66bb6a;
+    --risk-medium-bg: #3a2a1a;
+    --risk-medium-text: #ffa726;
+}
+
+
+.dark-mode .predictive-container,
+.dark-mode .summary-card,
+.dark-mode .chart-container,
+.dark-mode .sentiment-summary,
+.dark-mode .sentiment-articles,
+.dark-mode .risk-profile-card,
+.dark-mode .allocation-card,
+.dark-mode .asset-selector {
+    background: var(--bg-card);
+    border-color: var(--border-card);
+}
+
+.dark-mode .predictive-container h1 {
+    color: var(--text-primary);
+}
+
+.dark-mode .forecast-insights,
+.dark-mode .risk-advice {
+    background: var(--bg-card-alt);
+}
+
+.dark-mode .sentiment-article a {
+    color: var(--text-primary);
+}
+
+.dark-mode .allocation-fill.stocks {
+    background: linear-gradient(90deg, #1a3a6a, #2a5a9e);
+}
+
+.dark-mode .allocation-fill.bonds {
+    background: linear-gradient(90deg, #1a4a2a, #3a8a4a);
+}
+
+.dark-mode .allocation-fill.crypto {
+    background: linear-gradient(90deg, #6a3a00, #aa5a00);
+}
+
+.dark-mode .allocation-fill.cash {
+    background: linear-gradient(90deg, #3a4a5a, #5a6a7a);
 }
 
 /* ---- Main Container ---- */
