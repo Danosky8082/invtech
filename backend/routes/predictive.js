@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const yahooFinance = require('yahoo-finance2');
+const yahooFinance = require('yahoo-finance2'); // ✅ correct import – no `new`
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
@@ -35,6 +35,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     
     let historical;
     try {
+      // ✅ Using yahooFinance directly – no `new`
       historical = await yahooFinance.historical(ticker, {
         period1: startDate,
         period2: endDate,
@@ -42,6 +43,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       });
     } catch (yahooErr) {
       console.error('Yahoo Finance error:', yahooErr.message);
+      // Return fallback data
       return res.json({
         ticker,
         currentPrice: 100.00,
@@ -63,7 +65,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
         historical: { dates: [], prices: [], ma7: [], ma30: [] },
         forecast: { dates: [], prices: [], upper: [], lower: [] },
         recommendation: { signal: 'HOLD', confidence: 'Low' },
-        note: 'No data available'
+        note: 'No data available for this ticker'
       });
     }
 
@@ -188,6 +190,9 @@ router.get('/sentiment', auth, async (req, res) => {
 // ==================== RISK PROFILE ====================
 router.get('/risk-profile', auth, async (req, res) => {
   try {
+    // Ensure the database connection is alive
+    await prisma.$connect();
+    
     const history = await prisma.userSimulation.findMany({
       where: { userId: req.user.id },
       include: { 
@@ -234,7 +239,7 @@ router.get('/risk-profile', auth, async (req, res) => {
     res.json({
       riskTolerance: 'medium',
       recommendedAllocation: { stocks: 60, bonds: 30, crypto: 5, cash: 5 },
-      message: 'Unable to calculate risk profile. Start simulating to get personalized recommendations!'
+      message: 'Unable to calculate risk profile. Please try again later.'
     });
   }
 });
