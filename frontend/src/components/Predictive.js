@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-// import { Link } from 'react-router-dom';
+import './Predictive.css';  // ✅ import the new styles
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
 import {
   Chart as ChartJS,
@@ -77,71 +77,9 @@ const Predictive = () => {
   if (loading) return <div className="container">Loading predictive insights...</div>;
 
   const toggleDarkMode = () => {
-  setDarkMode(!darkMode);
-  document.body.classList.toggle('dark-mode', !darkMode);
-};
-
-
-  // Chart data for forecast
-//   const chartData = forecast?.historical ? {
-//     labels: forecast.historical.dates.map(d => d.slice(5)),
-//     datasets: [
-//       {
-//         label: 'Historical Price',
-//         data: forecast.historical.prices,
-//         borderColor: '#1e3c72',
-//         backgroundColor: 'rgba(30, 60, 114, 0.1)',
-//         tension: 0.3,
-//         fill: false,
-//       },
-//       {
-//         label: '7-Day MA',
-//         data: forecast.historical.ma7,
-//         borderColor: '#ffb347',
-//         borderDash: [5, 5],
-//         tension: 0.3,
-//         fill: false,
-//       },
-//       {
-//         label: '30-Day MA',
-//         data: forecast.historical.ma30,
-//         borderColor: '#f6d365',
-//         borderDash: [5, 5],
-//         tension: 0.3,
-//         fill: false,
-//       },
-//     ],
-//   } : null;
-
-//   const forecastChartData = forecast?.forecast ? {
-//     labels: forecast.forecast.dates.map(d => d.slice(5)),
-//     datasets: [
-//       {
-//         label: 'Predicted Price',
-//         data: forecast.forecast.prices,
-//         borderColor: '#2e7d32',
-//         backgroundColor: 'rgba(46, 125, 50, 0.1)',
-//         tension: 0.3,
-//         fill: false,
-//       },
-//       {
-//         label: 'Upper Bound (70% CI)',
-//         data: forecast.forecast.upper,
-//         borderColor: 'rgba(46, 125, 50, 0.2)',
-//         backgroundColor: 'rgba(46, 125, 50, 0.05)',
-//         tension: 0.3,
-//         fill: '+1',
-//       },
-//       {
-//         label: 'Lower Bound (70% CI)',
-//         data: forecast.forecast.lower,
-//         borderColor: 'rgba(46, 125, 50, 0.2)',
-//         backgroundColor: 'rgba(46, 125, 50, 0.05)',
-//         tension: 0.3,
-//         fill: '-1',
-//       },
-//     ],
-//   } : null;
+    setDarkMode(!darkMode);
+    document.body.classList.toggle('dark-mode', !darkMode);
+  };
 
   const combinedChartData = {
     labels: [
@@ -191,10 +129,14 @@ const Predictive = () => {
 
   return (
     <div className="predictive-container">
+      {/* Dark Mode Toggle Button */}
+      <button className="theme-toggle" onClick={toggleDarkMode}>
+        {darkMode ? '☀️ Light' : '🌙 Dark'}
+      </button>
+
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
-      {/* Asset Selector */}
       <div className="asset-selector">
         <label>Select Asset:</label>
         <select value={selectedTicker} onChange={handleAssetChange}>
@@ -205,11 +147,7 @@ const Predictive = () => {
           ))}
         </select>
       </div>
-      <button className="theme-toggle" onClick={toggleDarkMode}>
-  {darkMode ? '☀️ Light' : '🌙 Dark'}
-</button>
 
-      {/* Tabs */}
       <div className="predictive-tabs">
         <button 
           className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
@@ -231,7 +169,6 @@ const Predictive = () => {
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
@@ -266,9 +203,7 @@ const Predictive = () => {
                   options={{
                     responsive: true,
                     plugins: {
-                      legend: {
-                        position: 'top',
-                      },
+                      legend: { position: 'top' },
                       tooltip: {
                         callbacks: {
                           label: function(context) {
