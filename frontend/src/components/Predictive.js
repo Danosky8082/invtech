@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Predictive.css';  // ✅ import the new styles
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
+import './Predictive.css';
 import {
   Chart as ChartJS,
   CategoryScale,
