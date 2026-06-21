@@ -1,11 +1,27 @@
 const express = require('express');
 const axios = require('axios');
-const yahooFinance = require('yahoo-finance2'); // ✅ correct import – no `new`
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// ==================== HELPERS ====================
+// ==================== HELPER: Generate mock historical data ====================
+function generateMockData(ticker) {
+  const basePrice = 100 + (Math.random() * 50);
+  const prices = [];
+  const dates = [];
+  const endDate = new Date();
+  for (let i = 90; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+    const randomWalk = (Math.random() - 0.5) * 2;
+    const price = i === 90 ? basePrice : prices[prices.length - 1] * (1 + randomWalk * 0.01);
+    prices.push(price);
+  }
+  return { prices, dates };
+}
+
+// ==================== HELPER: Calculate Moving Average ====================
 function calculateMovingAverage(data, window) {
   const result = [];
   for (let i = 0; i < data.length; i++) {
@@ -17,6 +33,7 @@ function calculateMovingAverage(data, window) {
   return result;
 }
 
+// ==================== HELPER: Calculate Volatility ====================
 function calculateVolatility(prices) {
   if (prices.length === 0) return 0;
   const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -25,52 +42,42 @@ function calculateVolatility(prices) {
   return Math.sqrt(variance);
 }
 
-// ==================== FORECAST ====================
+// ==================== GET FORECAST ====================
 router.get('/forecast/:ticker', auth, async (req, res) => {
   const { ticker } = req.params;
   try {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 90);
-    
-    let historical;
+    // Try to fetch real data via Yahoo Finance
+    let historicalData;
+    let isReal = false;
     try {
-      // ✅ Using yahooFinance directly – no `new`
-      historical = await yahooFinance.historical(ticker, {
-        period1: startDate,
-        period2: endDate,
-        interval: '1d',
-      });
+      // Dynamic import for yahoo-finance2 (ES module)
+      const yahooFinanceModule = await import('yahoo-finance2');
+      const yahooFinance = yahooFinanceModule.default || yahooFinanceModule;
+      if (typeof yahooFinance.historical === 'function') {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 90);
+        historicalData = await yahooFinance.historical(ticker, {
+          period1: startDate,
+          period2: endDate,
+          interval: '1d',
+        });
+        if (historicalData && historicalData.length > 0) isReal = true;
+      }
     } catch (yahooErr) {
-      console.error('Yahoo Finance error:', yahooErr.message);
-      // Return fallback data
-      return res.json({
-        ticker,
-        currentPrice: 100.00,
-        volatility: 0.02,
-        trend: 0.5,
-        historical: { dates: [], prices: [], ma7: [], ma30: [] },
-        forecast: { dates: [], prices: [], upper: [], lower: [] },
-        recommendation: { signal: 'HOLD', confidence: 'Low' },
-        note: 'Real data unavailable – showing fallback values'
-      });
+      console.warn('Yahoo Finance unavailable, using mock data:', yahooErr.message);
     }
 
-    if (!historical || historical.length === 0) {
-      return res.json({
-        ticker,
-        currentPrice: 100.00,
-        volatility: 0.02,
-        trend: 0,
-        historical: { dates: [], prices: [], ma7: [], ma30: [] },
-        forecast: { dates: [], prices: [], upper: [], lower: [] },
-        recommendation: { signal: 'HOLD', confidence: 'Low' },
-        note: 'No data available for this ticker'
-      });
+    // If no real data, generate mock
+    let prices, dates;
+    if (!isReal || !historicalData || historicalData.length === 0) {
+      const mock = generateMockData(ticker);
+      prices = mock.prices;
+      dates = mock.dates;
+    } else {
+      prices = historicalData.map(d => d.close);
+      dates = historicalData.map(d => d.date.toISOString().split('T')[0]);
     }
-
-    const prices = historical.map(d => d.close);
-    const dates = historical.map(d => d.date.toISOString().split('T')[0]);
 
     const ma7 = calculateMovingAverage(prices, 7);
     const ma30 = calculateMovingAverage(prices, 30);
@@ -101,6 +108,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       currentPrice,
       volatility: volatility * 100,
       trend: trend * 100,
+      isReal,
       historical: {
         dates: dates.slice(-30),
         prices: prices.slice(-30),
@@ -120,11 +128,13 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
+    // Final fallback
     res.json({
       ticker,
       currentPrice: 100.00,
-      volatility: 0.02,
+      volatility: 2.0,
       trend: 0,
+      isReal: false,
       historical: { dates: [], prices: [], ma7: [], ma30: [] },
       forecast: { dates: [], prices: [], upper: [], lower: [] },
       recommendation: { signal: 'HOLD', confidence: 'Low' },
@@ -133,7 +143,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
   }
 });
 
-// ==================== SENTIMENT ====================
+// ==================== GET SENTIMENT ====================
 router.get('/sentiment', auth, async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
@@ -187,12 +197,11 @@ router.get('/sentiment', auth, async (req, res) => {
   }
 });
 
-// ==================== RISK PROFILE ====================
+// ==================== GET RISK PROFILE ====================
 router.get('/risk-profile', auth, async (req, res) => {
   try {
-    // Ensure the database connection is alive
+    // Ensure database connection
     await prisma.$connect();
-    
     const history = await prisma.userSimulation.findMany({
       where: { userId: req.user.id },
       include: { 
@@ -200,7 +209,6 @@ router.get('/risk-profile', auth, async (req, res) => {
       },
     });
 
-    // If no history, return default
     if (!history || history.length === 0) {
       return res.json({
         riskTolerance: 'medium',
@@ -235,7 +243,6 @@ router.get('/risk-profile', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Risk profile error:', err.message);
-    // Return default instead of 500
     res.json({
       riskTolerance: 'medium',
       recommendedAllocation: { stocks: 60, bonds: 30, crypto: 5, cash: 5 },
