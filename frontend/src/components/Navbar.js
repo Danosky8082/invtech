@@ -19,10 +19,9 @@ const Navbar = () => {
         <Link to="/">🏦 InvTech</Link>
       </div>
       <div className="navbar-links">
-        {/* ✅ These links are always visible */}
+        {/* Always visible */}
         <Link to="/faq" className="nav-link">FAQ</Link>
         <Link to="/contact" className="nav-link">Contact</Link>
-        <Link to="/predictive" className="nav-link">📊 Insights</Link>
 
         {!token ? (
           <>
@@ -33,6 +32,8 @@ const Navbar = () => {
           <>
             <span className="nav-user">👋 {user?.username || 'Investor'}</span>
             <Link to="/dashboard" className="nav-link">Dashboard</Link>
+            {/* ✅ NEW Predictive Insights link */}
+            <Link to="/predictive" className="nav-link">📊 Insights</Link>
             <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
           </>
         )}
