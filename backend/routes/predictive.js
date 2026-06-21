@@ -1,14 +1,11 @@
 const express = require('express');
 const axios = require('axios');
-const YahooFinance = require('yahoo-finance2'); // v3: import the class
+const yahooFinance = require('yahoo-finance2');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Instantiate the Yahoo Finance client (v3)
-const yahooFinance = new YahooFinance();
-
-// ==================== HELPER: Calculate Moving Average ====================
+// ==================== HELPERS ====================
 function calculateMovingAverage(data, window) {
   const result = [];
   for (let i = 0; i < data.length; i++) {
@@ -25,7 +22,6 @@ function calculateMovingAverage(data, window) {
   return result;
 }
 
-// ==================== HELPER: Calculate Volatility (Standard Deviation) ====================
 function calculateVolatility(prices) {
   if (prices.length === 0) return 0;
   const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -34,11 +30,10 @@ function calculateVolatility(prices) {
   return Math.sqrt(variance);
 }
 
-// ==================== GET Historical Data & Forecast ====================
+// ==================== GET FORECAST ====================
 router.get('/forecast/:ticker', auth, async (req, res) => {
   const { ticker } = req.params;
   try {
-    // Fetch historical data (last 90 days)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 90);
@@ -52,7 +47,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       });
     } catch (yahooErr) {
       console.error('Yahoo Finance error:', yahooErr.message);
-      // Return fallback data
       return res.json({
         ticker,
         currentPrice: 100.00,
@@ -72,18 +66,15 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     const prices = historical.map(d => d.close);
     const dates = historical.map(d => d.date.toISOString().split('T')[0]);
 
-    // Calculate simple forecast (moving average + trend)
     const ma7 = calculateMovingAverage(prices, 7);
     const ma30 = calculateMovingAverage(prices, 30);
-    const volatility = calculateVolatility(prices.slice(-30)); // use recent 30 days for volatility
+    const volatility = calculateVolatility(prices.slice(-30));
     const currentPrice = prices[prices.length - 1];
     
-    // Simple linear trend
     const last10Prices = prices.slice(-10);
     const avgPrice = last10Prices.reduce((a, b) => a + b, 0) / last10Prices.length;
     const trend = (currentPrice - avgPrice) / avgPrice;
 
-    // Forecast next 30 days (simple projection)
     const forecastDates = [];
     const forecastPrices = [];
     const forecastUpper = [];
@@ -104,9 +95,9 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       ticker,
       currentPrice,
       volatility,
-      trend: trend * 100, // percentage
+      trend: trend * 100,
       historical: {
-        dates: dates.slice(-30), // last 30 days
+        dates: dates.slice(-30),
         prices: prices.slice(-30),
         ma7: ma7.slice(-30),
         ma30: ma30.slice(-30),
@@ -124,7 +115,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
-    // Return fallback on any other error
     res.json({
       ticker,
       currentPrice: 100.00,
@@ -138,7 +128,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
   }
 });
 
-// ==================== GET Sentiment Analysis ====================
+// ==================== GET SENTIMENT ====================
 router.get('/sentiment', auth, async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
@@ -157,26 +147,19 @@ router.get('/sentiment', auth, async (req, res) => {
     const response = await axios.get(apiUrl, { timeout: 8000 });
     const articles = response.data.articles || [];
 
-    // Simple sentiment scoring (keyword-based)
     const positiveWords = ['surge', 'rally', 'gain', 'record', 'high', 'profit', 'growth', 'bullish', 'soar'];
     const negativeWords = ['fall', 'drop', 'decline', 'low', 'loss', 'bearish', 'crash', 'slump', 'risk'];
 
     let score = 0;
-    
     articles.slice(0, 10).forEach(article => {
       const text = (article.title + ' ' + article.description || '').toLowerCase();
-      positiveWords.forEach(word => {
-        if (text.includes(word)) score += 0.5;
-      });
-      negativeWords.forEach(word => {
-        if (text.includes(word)) score -= 0.5;
-      });
+      positiveWords.forEach(word => { if (text.includes(word)) score += 0.5; });
+      negativeWords.forEach(word => { if (text.includes(word)) score -= 0.5; });
     });
 
     let sentiment = 'neutral';
     if (score > 1) sentiment = 'positive';
     else if (score < -1) sentiment = 'negative';
-    else sentiment = 'neutral';
 
     const formattedArticles = articles.slice(0, 5).map(a => ({
       title: a.title || 'No title',
@@ -199,10 +182,9 @@ router.get('/sentiment', auth, async (req, res) => {
   }
 });
 
-// ==================== GET Risk Profile ====================
+// ==================== GET RISK PROFILE ====================
 router.get('/risk-profile', auth, async (req, res) => {
   try {
-    // Get user's simulation history
     const history = await prisma.userSimulation.findMany({
       where: { userId: req.user.id },
       include: { asset: true },
@@ -221,7 +203,6 @@ router.get('/risk-profile', auth, async (req, res) => {
       });
     }
 
-    // Calculate user's risk appetite based on chosen assets
     const riskLevels = history.map(s => s.asset?.riskLevel || 'medium');
     const riskScore = riskLevels.reduce((acc, level) => {
       if (level === 'high') return acc + 3;
