@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
 import {
   Chart as ChartJS,
@@ -76,65 +76,65 @@ const Predictive = () => {
   if (loading) return <div className="container">Loading predictive insights...</div>;
 
   // Chart data for forecast
-  const chartData = forecast?.historical ? {
-    labels: forecast.historical.dates.map(d => d.slice(5)),
-    datasets: [
-      {
-        label: 'Historical Price',
-        data: forecast.historical.prices,
-        borderColor: '#1e3c72',
-        backgroundColor: 'rgba(30, 60, 114, 0.1)',
-        tension: 0.3,
-        fill: false,
-      },
-      {
-        label: '7-Day MA',
-        data: forecast.historical.ma7,
-        borderColor: '#ffb347',
-        borderDash: [5, 5],
-        tension: 0.3,
-        fill: false,
-      },
-      {
-        label: '30-Day MA',
-        data: forecast.historical.ma30,
-        borderColor: '#f6d365',
-        borderDash: [5, 5],
-        tension: 0.3,
-        fill: false,
-      },
-    ],
-  } : null;
+//   const chartData = forecast?.historical ? {
+//     labels: forecast.historical.dates.map(d => d.slice(5)),
+//     datasets: [
+//       {
+//         label: 'Historical Price',
+//         data: forecast.historical.prices,
+//         borderColor: '#1e3c72',
+//         backgroundColor: 'rgba(30, 60, 114, 0.1)',
+//         tension: 0.3,
+//         fill: false,
+//       },
+//       {
+//         label: '7-Day MA',
+//         data: forecast.historical.ma7,
+//         borderColor: '#ffb347',
+//         borderDash: [5, 5],
+//         tension: 0.3,
+//         fill: false,
+//       },
+//       {
+//         label: '30-Day MA',
+//         data: forecast.historical.ma30,
+//         borderColor: '#f6d365',
+//         borderDash: [5, 5],
+//         tension: 0.3,
+//         fill: false,
+//       },
+//     ],
+//   } : null;
 
-  const forecastChartData = forecast?.forecast ? {
-    labels: forecast.forecast.dates.map(d => d.slice(5)),
-    datasets: [
-      {
-        label: 'Predicted Price',
-        data: forecast.forecast.prices,
-        borderColor: '#2e7d32',
-        backgroundColor: 'rgba(46, 125, 50, 0.1)',
-        tension: 0.3,
-        fill: false,
-      },
-      {
-        label: 'Upper Bound (70% CI)',
-        data: forecast.forecast.upper,
-        borderColor: 'rgba(46, 125, 50, 0.2)',
-        backgroundColor: 'rgba(46, 125, 50, 0.05)',
-        tension: 0.3,
-        fill: '+1',
-      },
-      {
-        label: 'Lower Bound (70% CI)',
-        data: forecast.forecast.lower,
-        borderColor: 'rgba(46, 125, 50, 0.2)',
-        backgroundColor: 'rgba(46, 125, 50, 0.05)',
-        tension: 0.3,
-        fill: '-1',
-      },
-    ],
-  } : null;
+//   const forecastChartData = forecast?.forecast ? {
+//     labels: forecast.forecast.dates.map(d => d.slice(5)),
+//     datasets: [
+//       {
+//         label: 'Predicted Price',
+//         data: forecast.forecast.prices,
+//         borderColor: '#2e7d32',
+//         backgroundColor: 'rgba(46, 125, 50, 0.1)',
+//         tension: 0.3,
+//         fill: false,
+//       },
+//       {
+//         label: 'Upper Bound (70% CI)',
+//         data: forecast.forecast.upper,
+//         borderColor: 'rgba(46, 125, 50, 0.2)',
+//         backgroundColor: 'rgba(46, 125, 50, 0.05)',
+//         tension: 0.3,
+//         fill: '+1',
+//       },
+//       {
+//         label: 'Lower Bound (70% CI)',
+//         data: forecast.forecast.lower,
+//         borderColor: 'rgba(46, 125, 50, 0.2)',
+//         backgroundColor: 'rgba(46, 125, 50, 0.05)',
+//         tension: 0.3,
+//         fill: '-1',
+//       },
+//     ],
+//   } : null;
 
   const combinedChartData = {
     labels: [
