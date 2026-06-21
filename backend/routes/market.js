@@ -1,7 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const yahooFinance = require('yahoo-finance2').default;
+let yahooFinance;
+try {
+  yahooFinance = require('yahoo-finance2').default;
+} catch (e) {
+  console.warn('Yahoo Finance module not available, using fallback');
+  yahooFinance = null;
+}
 const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
@@ -142,17 +148,21 @@ router.get('/stock/:symbol', async (req, res) => {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
-    const quote = await yahooFinance.quote(symbol);
-    if (!quote.regularMarketPrice) throw new Error('No price');
+    let price = 100.00;
+    if (yahooFinance) {
+      const quote = await yahooFinance.quote(symbol);
+      if (quote.regularMarketPrice) price = quote.regularMarketPrice;
+    }
     res.json({
-      symbol: quote.symbol,
-      price: quote.regularMarketPrice,
-      change: quote.regularMarketChange || 0,
-      changePercent: quote.regularMarketChangePercent || 0,
-      volume: quote.regularMarketVolume || 0
+      symbol,
+      price,
+      change: 0,
+      changePercent: 0,
+      volume: 0,
+      note: yahooFinance ? '' : 'estimated (Yahoo unavailable)'
     });
   } catch (err) {
-    console.error(`Yahoo Finance error for ${symbol}:`, err.message);
+    console.error('Stock fetch error:', err.message);
     res.json({ symbol, price: 100.00, change: 0, changePercent: 0, note: 'estimated' });
   }
 });
