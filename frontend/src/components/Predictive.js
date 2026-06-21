@@ -33,6 +33,7 @@ const Predictive = () => {
   const [riskProfile, setRiskProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('forecast');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -74,6 +75,12 @@ const Predictive = () => {
   };
 
   if (loading) return <div className="container">Loading predictive insights...</div>;
+
+  const toggleDarkMode = () => {
+  setDarkMode(!darkMode);
+  document.body.classList.toggle('dark-mode', !darkMode);
+};
+
 
   // Chart data for forecast
 //   const chartData = forecast?.historical ? {
@@ -198,6 +205,9 @@ const Predictive = () => {
           ))}
         </select>
       </div>
+      <button className="theme-toggle" onClick={toggleDarkMode}>
+  {darkMode ? '☀️ Light' : '🌙 Dark'}
+</button>
 
       {/* Tabs */}
       <div className="predictive-tabs">
