@@ -1,9 +1,12 @@
 const express = require('express');
 const axios = require('axios');
-const yahooFinance = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2'); // v3: import the class
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
+
+// Instantiate the Yahoo Finance client (v3)
+const yahooFinance = new YahooFinance();
 
 // ==================== HELPER: Calculate Moving Average ====================
 function calculateMovingAverage(data, window) {
@@ -24,6 +27,7 @@ function calculateMovingAverage(data, window) {
 
 // ==================== HELPER: Calculate Volatility (Standard Deviation) ====================
 function calculateVolatility(prices) {
+  if (prices.length === 0) return 0;
   const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
   const squaredDiffs = prices.map(p => Math.pow(p - mean, 2));
   const variance = squaredDiffs.reduce((a, b) => a + b, 0) / prices.length;
@@ -39,11 +43,27 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 90);
     
-    const historical = await yahooFinance.historical(ticker, {
-      period1: startDate,
-      period2: endDate,
-      interval: '1d',
-    });
+    let historical;
+    try {
+      historical = await yahooFinance.historical(ticker, {
+        period1: startDate,
+        period2: endDate,
+        interval: '1d',
+      });
+    } catch (yahooErr) {
+      console.error('Yahoo Finance error:', yahooErr.message);
+      // Return fallback data
+      return res.json({
+        ticker,
+        currentPrice: 100.00,
+        volatility: 0.02,
+        trend: 0.5,
+        historical: { dates: [], prices: [], ma7: [], ma30: [] },
+        forecast: { dates: [], prices: [], upper: [], lower: [] },
+        recommendation: { signal: 'HOLD', confidence: 'Low' },
+        note: 'Real data unavailable – showing fallback values'
+      });
+    }
 
     if (!historical || historical.length === 0) {
       return res.status(404).json({ error: 'No data found for this ticker' });
@@ -55,7 +75,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     // Calculate simple forecast (moving average + trend)
     const ma7 = calculateMovingAverage(prices, 7);
     const ma30 = calculateMovingAverage(prices, 30);
-    const volatility = calculateVolatility(prices);
+    const volatility = calculateVolatility(prices.slice(-30)); // use recent 30 days for volatility
     const currentPrice = prices[prices.length - 1];
     
     // Simple linear trend
@@ -99,12 +119,22 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       },
       recommendation: {
         signal: trend > 0.02 ? 'BUY' : trend < -0.02 ? 'SELL' : 'HOLD',
-        confidence: (1 - volatility) * 100 > 50 ? 'High' : 'Medium',
+        confidence: (1 - volatility) > 0.5 ? 'High' : 'Medium',
       }
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch forecast data' });
+    // Return fallback on any other error
+    res.json({
+      ticker,
+      currentPrice: 100.00,
+      volatility: 0.02,
+      trend: 0,
+      historical: { dates: [], prices: [], ma7: [], ma30: [] },
+      forecast: { dates: [], prices: [], upper: [], lower: [] },
+      recommendation: { signal: 'HOLD', confidence: 'Low' },
+      note: 'Data temporarily unavailable'
+    });
   }
 });
 
@@ -132,7 +162,6 @@ router.get('/sentiment', auth, async (req, res) => {
     const negativeWords = ['fall', 'drop', 'decline', 'low', 'loss', 'bearish', 'crash', 'slump', 'risk'];
 
     let score = 0;
-    let sentiment = 'neutral';
     
     articles.slice(0, 10).forEach(article => {
       const text = (article.title + ' ' + article.description || '').toLowerCase();
@@ -144,6 +173,7 @@ router.get('/sentiment', auth, async (req, res) => {
       });
     });
 
+    let sentiment = 'neutral';
     if (score > 1) sentiment = 'positive';
     else if (score < -1) sentiment = 'negative';
     else sentiment = 'neutral';
