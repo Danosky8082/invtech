@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './Predictive.css';
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
-import AssetSelector from './AssetSelector';
+import AsyncAssetSelector from './AsyncAssetSelector';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -155,7 +155,7 @@ const Predictive = () => {
 
       <div className="asset-selector">
         <label>Select Asset:</label>
-        <AssetSelector
+        <AsyncAssetSelector
   onSelect={(asset) => {
     if (asset && asset.ticker) {
       setSelectedTicker(asset.ticker);
@@ -163,7 +163,7 @@ const Predictive = () => {
     }
   }}
   value={assets.find(a => a.ticker === selectedTicker)}
-  placeholder="Search for an asset..."
+  placeholder="Search for any asset..."
 />
       </div>
 

@@ -25,5 +25,6 @@ export const getForecast = (ticker, days = 30, scenario = 'neutral') =>
 export const getSentiment = (country = 'us') => API.get(`/predictive/sentiment?country=${country}`);
 export const getRiskProfile = () => API.get('/predictive/risk-profile');
 export const getPortfolio = () => API.get('/portfolio');
+export const searchAssets = (query) => API.get(`/assets/search?query=${query}`);
 
 export { API as api };
