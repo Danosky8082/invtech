@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
+const yahooFinance = require('yahoo-finance2');
 let yahooFinance;
 try {
   yahooFinance = require('yahoo-finance2').default;
