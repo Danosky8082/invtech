@@ -20,7 +20,8 @@ export const detectCountry = () => API.get('/market/detect-country');
 export const getAssets = () => API.get('/simulation/assets');
 export const simulateInvestment = (data) => API.post('/simulation/simulate', data);
 export const getHistory = () => API.get('/simulation/history');
-export const getForecast = (ticker) => API.get(`/predictive/forecast/${ticker}`);
+export const getForecast = (ticker, days = 30, scenario = 'neutral') => 
+  API.get(`/predictive/forecast/${ticker}?days=${days}&scenario=${scenario}`);
 export const getSentiment = (country = 'us') => API.get(`/predictive/sentiment?country=${country}`);
 export const getRiskProfile = () => API.get('/predictive/risk-profile');
 export const getPortfolio = () => API.get('/portfolio');

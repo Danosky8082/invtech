@@ -2,8 +2,9 @@ const express = require('express');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const yahooFinance = require('yahoo-finance2');
 
-// GET /portfolio – aggregated holdings from user simulations
+// GET /portfolio – aggregated holdings with real-time values
 router.get('/', auth, async (req, res) => {
   try {
     // Fetch all simulations for the user, including asset details
@@ -19,6 +20,7 @@ router.get('/', auth, async (req, res) => {
         totalInvested: 0,
         totalExpectedProfit: 0,
         totalValue: 0,
+        totalRealizedProfit: 0,
         holdings: [],
       });
     }
@@ -27,6 +29,7 @@ router.get('/', auth, async (req, res) => {
     const holdingsMap = {};
     let totalInvested = 0;
     let totalExpectedProfit = 0;
+    let totalRealizedProfit = 0; // placeholder – we'll compute later
 
     simulations.forEach((sim) => {
       const assetId = sim.assetId;
@@ -38,27 +41,91 @@ router.get('/', auth, async (req, res) => {
           type: sim.asset.type,
           totalInvested: 0,
           totalExpectedProfit: 0,
+          totalShares: 0,
+          priceAtSimulation: sim.priceAtSimulation || null,
         };
       }
       holdingsMap[assetId].totalInvested += sim.amountInvested;
       holdingsMap[assetId].totalExpectedProfit += sim.expectedProfit;
+      // Accumulate shares if we have a valid priceAtSimulation
+      if (sim.priceAtSimulation && sim.priceAtSimulation > 0) {
+        holdingsMap[assetId].totalShares += sim.amountInvested / sim.priceAtSimulation;
+      } else {
+        // If no priceAtSimulation, we can't calculate shares; we'll treat as zero shares
+        // and keep totalInvested for display but no real-time value
+        // We'll still add totalInvested but skip share accumulation.
+      }
       totalInvested += sim.amountInvested;
       totalExpectedProfit += sim.expectedProfit;
     });
 
-    const holdings = Object.values(holdingsMap).map((h) => ({
-      ...h,
-      totalValue: h.totalInvested + h.totalExpectedProfit,
-      allocationPercent: totalInvested > 0 ? (h.totalInvested / totalInvested) * 100 : 0,
-    }));
+    // Build holdings array and fetch live prices
+    const holdings = [];
+    for (const assetId in holdingsMap) {
+      const h = holdingsMap[assetId];
+      let currentPrice = null;
+      let currentValue = null;
+      let unrealizedProfit = null;
+      let unrealizedProfitPercent = null;
+
+      // Try to fetch live price if ticker exists
+      if (h.ticker && h.ticker !== 'N/A') {
+        try {
+          const quote = await yahooFinance.quote(h.ticker);
+          if (quote && quote.regularMarketPrice) {
+            currentPrice = quote.regularMarketPrice;
+          }
+        } catch (e) {
+          // If fetch fails, keep currentPrice null
+          console.warn(`Could not fetch price for ${h.ticker}:`, e.message);
+        }
+      }
+
+      // If we have shares and a current price, compute real-time value
+      if (currentPrice && h.totalShares > 0) {
+        currentValue = h.totalShares * currentPrice;
+        unrealizedProfit = currentValue - h.totalInvested;
+        unrealizedProfitPercent = (unrealizedProfit / h.totalInvested) * 100;
+      } else {
+        // If no current price or no shares, fallback to expected profit
+        currentValue = h.totalInvested + h.totalExpectedProfit;
+        unrealizedProfit = h.totalExpectedProfit;
+        unrealizedProfitPercent = (h.totalExpectedProfit / h.totalInvested) * 100;
+      }
+
+      holdings.push({
+        assetId: h.assetId,
+        name: h.name,
+        ticker: h.ticker,
+        type: h.type,
+        totalInvested: h.totalInvested,
+        totalExpectedProfit: h.totalExpectedProfit,
+        totalShares: h.totalShares,
+        currentPrice: currentPrice,
+        currentValue: currentValue,
+        unrealizedProfit: unrealizedProfit,
+        unrealizedProfitPercent: unrealizedProfitPercent,
+        allocationPercent: totalInvested > 0 ? (h.totalInvested / totalInvested) * 100 : 0,
+      });
+
+      // Accumulate realized profit (we'll use expected profit for now)
+      totalRealizedProfit += h.totalExpectedProfit;
+    }
 
     // Sort by totalInvested descending
     holdings.sort((a, b) => b.totalInvested - a.totalInvested);
 
+    // Compute overall totals
+    const totalCurrentValue = holdings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
+    const totalUnrealizedProfit = totalCurrentValue - totalInvested;
+    const totalRealizedProfitValue = totalExpectedProfit; // using expected profit as proxy for realized
+
     res.json({
       totalInvested,
       totalExpectedProfit,
-      totalValue: totalInvested + totalExpectedProfit,
+      totalValue: totalCurrentValue, // real-time total value
+      totalUnrealizedProfit,
+      totalUnrealizedProfitPercent: totalInvested > 0 ? (totalUnrealizedProfit / totalInvested) * 100 : 0,
       holdings,
     });
   } catch (err) {

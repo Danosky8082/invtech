@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import './Predictive.css';  // ✅ import the new styles
-import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
 import './Predictive.css';
+import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,29 +34,14 @@ const Predictive = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('forecast');
   const [darkMode, setDarkMode] = useState(false);
+  const [forecastDays, setForecastDays] = useState(30);
+  const [scenario, setScenario] = useState('neutral');
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const assetsRes = await getAssets();
-        setAssets(assetsRes.data);
-        if (assetsRes.data.length > 0) {
-          setSelectedTicker(assetsRes.data[0].ticker || 'AAPL');
-        }
-        await fetchAllData(assetsRes.data[0]?.ticker || 'AAPL');
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  const fetchAllData = async (ticker) => {
+  // Fetch all data with the given ticker, days, and scenario
+  const fetchAllData = async (ticker, days = forecastDays, scn = scenario) => {
     try {
       const [forecastRes, sentimentRes, riskRes] = await Promise.all([
-        getForecast(ticker),
+        getForecast(ticker, days, scn),
         getSentiment('us'),
         getRiskProfile(),
       ]);
@@ -69,10 +53,43 @@ const Predictive = () => {
     }
   };
 
+  // Initial load
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const assetsRes = await getAssets();
+        setAssets(assetsRes.data);
+        if (assetsRes.data.length > 0) {
+          const firstTicker = assetsRes.data[0].ticker || 'AAPL';
+          setSelectedTicker(firstTicker);
+          await fetchAllData(firstTicker);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Re-fetch when ticker, days, or scenario changes
+  useEffect(() => {
+    if (selectedTicker) {
+      fetchAllData(selectedTicker);
+    }
+  }, [selectedTicker, forecastDays, scenario]);
+
   const handleAssetChange = (e) => {
-    const ticker = e.target.value;
-    setSelectedTicker(ticker);
-    fetchAllData(ticker);
+    setSelectedTicker(e.target.value);
+  };
+
+  const handleDaysChange = (e) => {
+    setForecastDays(Number(e.target.value));
+  };
+
+  const handleScenarioChange = (e) => {
+    setScenario(e.target.value);
   };
 
   if (loading) return <div className="container">Loading predictive insights...</div>;
@@ -149,6 +166,32 @@ const Predictive = () => {
         </select>
       </div>
 
+      {/* --- NEW CONTROLS --- */}
+      <div className="predictive-controls">
+        <div className="control-group">
+          <label>Forecast Horizon:</label>
+          <input
+            type="range"
+            min="7"
+            max="90"
+            step="1"
+            value={forecastDays}
+            onChange={handleDaysChange}
+          />
+          <span className="control-value">{forecastDays} days</span>
+        </div>
+
+        <div className="control-group">
+          <label>Scenario:</label>
+          <select value={scenario} onChange={handleScenarioChange}>
+            <option value="optimistic">Optimistic</option>
+            <option value="neutral">Neutral</option>
+            <option value="pessimistic">Pessimistic</option>
+          </select>
+        </div>
+      </div>
+      {/* --- END CONTROLS --- */}
+
       <div className="predictive-tabs">
         <button 
           className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
@@ -197,7 +240,7 @@ const Predictive = () => {
             </div>
 
             <div className="chart-container">
-              <h3>Price Forecast (30 Days)</h3>
+              <h3>Price Forecast ({forecastDays} Days)</h3>
               {combinedChartData && (
                 <Line 
                   data={combinedChartData}
@@ -231,8 +274,12 @@ const Predictive = () => {
               <h4>💡 Key Insights</h4>
               <ul>
                 <li><strong>Confidence:</strong> {forecast.recommendation?.confidence || 'N/A'}</li>
-                <li><strong>30-Day Projection:</strong> ${forecast.forecast?.prices?.[forecast.forecast.prices.length - 1]?.toFixed(2) || 'N/A'}</li>
+                <li><strong>{forecastDays}-Day Projection:</strong> ${forecast.forecast?.prices?.[forecast.forecast.prices.length - 1]?.toFixed(2) || 'N/A'}</li>
                 <li><strong>Volatility Level:</strong> {forecast.volatility > 0.03 ? 'High' : forecast.volatility > 0.02 ? 'Medium' : 'Low'}</li>
+                {/* --- NEW METRICS --- */}
+                <li><strong>Annualized Return:</strong> {forecast.metrics?.annualizedReturn || 'N/A'}%</li>
+                <li><strong>Sharpe Ratio:</strong> {forecast.metrics?.sharpeRatio || 'N/A'}</li>
+                <li><strong>Max Drawdown:</strong> {forecast.metrics?.maxDrawdown || 'N/A'}%</li>
               </ul>
             </div>
           </div>

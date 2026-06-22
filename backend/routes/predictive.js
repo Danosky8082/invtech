@@ -48,6 +48,8 @@ function calculateVolatility(prices) {
 // ==================== FORECAST ====================
 router.get('/forecast/:ticker', auth, async (req, res) => {
   const { ticker } = req.params;
+  const { days = 30, scenario = 'neutral' } = req.query;
+
   try {
     // Generate mock data (realistic simulation)
     const { prices, dates } = generateMockData(ticker);
@@ -60,21 +62,48 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     const avgPrice = last10Prices.reduce((a, b) => a + b, 0) / last10Prices.length;
     const trend = (currentPrice - avgPrice) / avgPrice;
 
+    // ----- Adjust forecast based on scenario -----
+    // volatilityMultiplier: wider bands for pessimistic, narrower for optimistic
+    let volatilityMultiplier = 1;
+    if (scenario === 'optimistic') volatilityMultiplier = 0.5;
+    else if (scenario === 'pessimistic') volatilityMultiplier = 1.5;
+
+    // ----- Compute forecast for the requested `days` horizon -----
     const forecastDates = [];
     const forecastPrices = [];
     const forecastUpper = [];
     const forecastLower = [];
-    
-    for (let i = 1; i <= 30; i++) {
+
+    // Convert days to integer
+    const forecastDays = parseInt(days, 10) || 30;
+
+    for (let i = 1; i <= forecastDays; i++) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + i);
       forecastDates.push(futureDate.toISOString().split('T')[0]);
-      const projectedPrice = currentPrice * (1 + (trend * (i / 30)));
+
+      const projectedPrice = currentPrice * (1 + (trend * (i / forecastDays)));
       forecastPrices.push(projectedPrice);
-      forecastUpper.push(projectedPrice * (1 + volatility * 0.5));
-      forecastLower.push(projectedPrice * (1 - volatility * 0.5));
+      forecastUpper.push(projectedPrice * (1 + volatility * volatilityMultiplier * 0.5));
+      forecastLower.push(projectedPrice * (1 - volatility * volatilityMultiplier * 0.5));
     }
 
+    // ----- Compute additional metrics (annualized return, Sharpe ratio, max drawdown) -----
+    const returns = prices.map((p, i) => (i > 0) ? (p - prices[i-1]) / prices[i-1] : 0);
+    const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const annualizedReturn = avgReturn * 252; // 252 trading days in a year
+    const sharpeRatio = annualizedReturn / (volatility * Math.sqrt(252));
+    
+    // Max drawdown
+    let maxDrawdown = 0;
+    let peak = prices[0];
+    for (const p of prices) {
+      if (p > peak) peak = p;
+      const drawdown = (peak - p) / peak;
+      if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+    }
+
+    // ----- Build response -----
     res.json({
       ticker,
       currentPrice,
@@ -97,10 +126,17 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       recommendation: {
         signal: trend > 0.02 ? 'BUY' : trend < -0.02 ? 'SELL' : 'HOLD',
         confidence: (1 - volatility) > 0.5 ? 'High' : 'Medium',
-      }
+      },
+      // 👇 NEW: metrics
+      metrics: {
+        annualizedReturn: (annualizedReturn * 100).toFixed(2),
+        sharpeRatio: sharpeRatio.toFixed(2),
+        maxDrawdown: (maxDrawdown * 100).toFixed(2),
+      },
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
+    // Fallback response
     res.json({
       ticker,
       currentPrice: 100.00,
@@ -110,7 +146,12 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       historical: { dates: [], prices: [], ma7: [], ma30: [] },
       forecast: { dates: [], prices: [], upper: [], lower: [] },
       recommendation: { signal: 'HOLD', confidence: 'Low' },
-      note: 'Data temporarily unavailable'
+      note: 'Data temporarily unavailable',
+      metrics: {
+        annualizedReturn: '0.00',
+        sharpeRatio: '0.00',
+        maxDrawdown: '0.00',
+      },
     });
   }
 });

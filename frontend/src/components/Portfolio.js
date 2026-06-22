@@ -27,7 +27,14 @@ const Portfolio = () => {
   if (loading) return <div className="container">Loading portfolio...</div>;
   if (error) return <div className="container error-message">{error}</div>;
 
-  const { totalInvested, totalExpectedProfit, totalValue, holdings } = portfolio || {};
+  const {
+    totalInvested,
+    totalExpectedProfit,
+    totalValue,
+    totalUnrealizedProfit,
+    totalUnrealizedProfitPercent,
+    holdings
+  } = portfolio || {};
 
   // Prepare pie chart data – only assets with invested > 0
   const pieData = holdings
@@ -38,24 +45,35 @@ const Portfolio = () => {
       ticker: h.ticker,
     })) || [];
 
+  // Helper to format currency
+  const formatCurrency = (value) => `$${value?.toFixed(2) || '0.00'}`;
+
   return (
     <div className="portfolio-container">
       <h1>📊 Portfolio Overview</h1>
-      <p>Your virtual investments based on simulation history.</p>
+      <p>Your virtual investments based on simulation history with real‑time market valuation.</p>
 
       {/* Summary cards */}
       <div className="portfolio-summary">
         <div className="summary-card">
           <h4>Total Invested</h4>
-          <p className="price">${totalInvested?.toFixed(2) || '0.00'}</p>
+          <p className="price">{formatCurrency(totalInvested)}</p>
         </div>
         <div className="summary-card">
-          <h4>Total Expected Profit</h4>
-          <p className="price positive">+${totalExpectedProfit?.toFixed(2) || '0.00'}</p>
+          <h4>Current Value</h4>
+          <p className="price">{formatCurrency(totalValue)}</p>
         </div>
         <div className="summary-card">
-          <h4>Total Value</h4>
-          <p className="price">${totalValue?.toFixed(2) || '0.00'}</p>
+          <h4>Unrealised P&L</h4>
+          <p className={`price ${totalUnrealizedProfit >= 0 ? 'positive' : 'negative'}`}>
+            {formatCurrency(totalUnrealizedProfit)}
+          </p>
+        </div>
+        <div className="summary-card">
+          <h4>P&L %</h4>
+          <p className={`price ${totalUnrealizedProfitPercent >= 0 ? 'positive' : 'negative'}`}>
+            {totalUnrealizedProfitPercent?.toFixed(2) || '0.00'}%
+          </p>
         </div>
         <div className="summary-card">
           <h4>Holdings</h4>
@@ -101,8 +119,9 @@ const Portfolio = () => {
                 <tr>
                   <th>Asset</th>
                   <th>Invested</th>
-                  <th>Profit</th>
-                  <th>Value</th>
+                  <th>Current Value</th>
+                  <th>Unrealised P&L</th>
+                  <th>P&L %</th>
                   <th>Allocation</th>
                 </tr>
               </thead>
@@ -114,10 +133,15 @@ const Portfolio = () => {
                       <br />
                       <span className="ticker">{h.ticker}</span>
                     </td>
-                    <td>${h.totalInvested.toFixed(2)}</td>
-                    <td className="positive">+${h.totalExpectedProfit.toFixed(2)}</td>
-                    <td>${h.totalValue.toFixed(2)}</td>
-                    <td>{h.allocationPercent.toFixed(1)}%</td>
+                    <td>{formatCurrency(h.totalInvested)}</td>
+                    <td>{formatCurrency(h.currentValue)}</td>
+                    <td className={h.unrealizedProfit >= 0 ? 'positive' : 'negative'}>
+                      {formatCurrency(h.unrealizedProfit)}
+                    </td>
+                    <td className={h.unrealizedProfitPercent >= 0 ? 'positive' : 'negative'}>
+                      {h.unrealizedProfitPercent?.toFixed(2) || '0.00'}%
+                    </td>
+                    <td>{h.allocationPercent?.toFixed(1) || '0.0'}%</td>
                   </tr>
                 ))}
               </tbody>

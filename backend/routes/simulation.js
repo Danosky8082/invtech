@@ -168,27 +168,7 @@ router.post('/simulate', auth, async (req, res) => {
     const profitUSD = usdAmount * asset.expectedReturn;
     const totalReturnUSD = usdAmount + profitUSD;
 
-    // Step 3: Convert results back to user's currency using fallback
-    let profitDisplay = profitUSD;
-    let totalDisplay = totalReturnUSD;
-    if (currency !== 'USD') {
-      profitDisplay = await convertWithFallback('USD', currency, profitUSD);
-      totalDisplay = await convertWithFallback('USD', currency, totalReturnUSD);
-    }
-
-    // Step 4: Store simulation in database (always in USD)
-    await prisma.userSimulation.create({
-      data: {
-        userId,
-        assetId,
-        amountInvested: usdAmount,
-        expectedProfit: profitUSD,
-        originalAmount: amountInvested,     
-        originalCurrency: currency, 
-      },
-    });
-
-    // Step 5: Live price (if available) and convert to user's currency
+    // Step 3: Fetch live price (if available) before storing
     let livePrice = null;
     let livePriceInUserCurrency = null;
     if (asset.ticker) {
@@ -202,6 +182,28 @@ router.post('/simulate', auth, async (req, res) => {
         }
       } catch (err) { /* silent */ }
     }
+
+    // Step 4: Convert results back to user's currency using fallback
+    let profitDisplay = profitUSD;
+    let totalDisplay = totalReturnUSD;
+    if (currency !== 'USD') {
+      profitDisplay = await convertWithFallback('USD', currency, profitUSD);
+      totalDisplay = await convertWithFallback('USD', currency, totalReturnUSD);
+    }
+
+    // Step 5: Store simulation in database (always in USD)
+    await prisma.userSimulation.create({
+      data: {
+        userId,
+        assetId,
+        amountInvested: usdAmount,
+        expectedProfit: profitUSD,
+        originalAmount: amountInvested,
+        originalCurrency: currency,
+        // ✅ Store the price at simulation time (USD)
+        priceAtSimulation: livePrice || null,  // use null if not available
+      },
+    });
 
     // Step 6: Compute projections
     let exchangeRateFromUSD = 1;
