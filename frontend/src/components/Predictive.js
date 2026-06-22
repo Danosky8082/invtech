@@ -37,7 +37,7 @@ const Predictive = () => {
   const [forecastDays, setForecastDays] = useState(30);
   const [scenario, setScenario] = useState('neutral');
 
-  // Fetch all data with the given ticker, days, and scenario
+  // Fetch all data (forecast, sentiment, risk profile)
   const fetchAllData = async (ticker, days = forecastDays, scn = scenario) => {
     try {
       const [forecastRes, sentimentRes, riskRes] = await Promise.all([
@@ -71,15 +71,16 @@ const Predictive = () => {
       }
     };
     loadData();
-  }, []);
+  }, []); // Runs once on mount
 
-  // Re-fetch when ticker, days, or scenario changes
+  // Watcher: refetch when ticker, days, or scenario changes
   useEffect(() => {
     if (selectedTicker) {
       fetchAllData(selectedTicker);
     }
   }, [selectedTicker, forecastDays, scenario]);
 
+  // --- Handlers ---
   const handleAssetChange = (e) => {
     setSelectedTicker(e.target.value);
   };
@@ -92,13 +93,15 @@ const Predictive = () => {
     setScenario(e.target.value);
   };
 
-  if (loading) return <div className="container">Loading predictive insights...</div>;
-
+  // --- Toggle dark mode ---
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle('dark-mode', !darkMode);
   };
 
+  if (loading) return <div className="container">Loading predictive insights...</div>;
+
+  // Chart data
   const combinedChartData = {
     labels: [
       ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
@@ -147,7 +150,6 @@ const Predictive = () => {
 
   return (
     <div className="predictive-container">
-      {/* Dark Mode Toggle Button */}
       <button className="theme-toggle" onClick={toggleDarkMode}>
         {darkMode ? '☀️ Light' : '🌙 Dark'}
       </button>
@@ -155,6 +157,7 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
+      {/* --- Asset Selector --- */}
       <div className="asset-selector">
         <label>Select Asset:</label>
         <select value={selectedTicker} onChange={handleAssetChange}>
@@ -166,7 +169,7 @@ const Predictive = () => {
         </select>
       </div>
 
-      {/* --- NEW CONTROLS --- */}
+      {/* --- Controls: Forecast Days & Scenario --- */}
       <div className="predictive-controls">
         <div className="control-group">
           <label>Forecast Horizon:</label>
@@ -190,22 +193,22 @@ const Predictive = () => {
           </select>
         </div>
       </div>
-      {/* --- END CONTROLS --- */}
 
+      {/* --- Tabs --- */}
       <div className="predictive-tabs">
-        <button 
+        <button
           className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
           onClick={() => setActiveTab('forecast')}
         >
           📈 Forecast
         </button>
-        <button 
+        <button
           className={activeTab === 'sentiment' ? 'tab-active' : 'tab'}
           onClick={() => setActiveTab('sentiment')}
         >
           📰 Sentiment
         </button>
-        <button 
+        <button
           className={activeTab === 'risk' ? 'tab-active' : 'tab'}
           onClick={() => setActiveTab('risk')}
         >
@@ -213,6 +216,7 @@ const Predictive = () => {
         </button>
       </div>
 
+      {/* --- Tab Content --- */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
@@ -242,7 +246,7 @@ const Predictive = () => {
             <div className="chart-container">
               <h3>Price Forecast ({forecastDays} Days)</h3>
               {combinedChartData && (
-                <Line 
+                <Line
                   data={combinedChartData}
                   options={{
                     responsive: true,
@@ -276,7 +280,6 @@ const Predictive = () => {
                 <li><strong>Confidence:</strong> {forecast.recommendation?.confidence || 'N/A'}</li>
                 <li><strong>{forecastDays}-Day Projection:</strong> ${forecast.forecast?.prices?.[forecast.forecast.prices.length - 1]?.toFixed(2) || 'N/A'}</li>
                 <li><strong>Volatility Level:</strong> {forecast.volatility > 0.03 ? 'High' : forecast.volatility > 0.02 ? 'Medium' : 'Low'}</li>
-                {/* --- NEW METRICS --- */}
                 <li><strong>Annualized Return:</strong> {forecast.metrics?.annualizedReturn || 'N/A'}%</li>
                 <li><strong>Sharpe Ratio:</strong> {forecast.metrics?.sharpeRatio || 'N/A'}</li>
                 <li><strong>Max Drawdown:</strong> {forecast.metrics?.maxDrawdown || 'N/A'}%</li>

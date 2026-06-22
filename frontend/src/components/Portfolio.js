@@ -27,14 +27,7 @@ const Portfolio = () => {
   if (loading) return <div className="container">Loading portfolio...</div>;
   if (error) return <div className="container error-message">{error}</div>;
 
-  const {
-    totalInvested,
-    totalExpectedProfit,
-    totalValue,
-    totalUnrealizedProfit,
-    totalUnrealizedProfitPercent,
-    holdings
-  } = portfolio || {};
+ const { totalInvested, totalValue, holdings } = portfolio || {};
 
   // Prepare pie chart data – only assets with invested > 0
   const pieData = holdings
