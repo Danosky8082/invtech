@@ -25,11 +25,18 @@ router.get('/search', auth, async (req, res) => {
   }
 
   try {
-    // 1. Search Yahoo Finance
-    const searchResults = await yahooFinance.search(query);
+    let searchResults;
+    try {
+      searchResults = await yahooFinance.search(query);
+    } catch (searchErr) {
+      console.error('Yahoo search error:', searchErr.message);
+      // Return empty array so frontend doesn't break
+      return res.json([]);
+    }
+
     const quotes = searchResults.quotes || [];
 
-    // 2. Filter: only equities, ETFs, and mutual funds
+    // Filter: only equities, ETFs, and mutual funds
     const filtered = quotes.filter(
       (q) =>
         q.quoteType === 'EQUITY' ||
@@ -37,7 +44,7 @@ router.get('/search', auth, async (req, res) => {
         q.quoteType === 'MUTUALFUND'
     );
 
-    // 3. Map to our asset format
+    // Map to our asset format
     const mapped = filtered.map((q) => ({
       ticker: q.symbol,
       name: q.longName || q.shortName || q.symbol,
@@ -46,7 +53,7 @@ router.get('/search', auth, async (req, res) => {
       inDatabase: false,
     }));
 
-    // 4. Fetch matching DB assets
+    // Fetch matching DB assets
     const tickers = mapped.map((a) => a.ticker);
     const dbAssets = await prisma.asset.findMany({
       where: { ticker: { in: tickers } },
@@ -54,14 +61,14 @@ router.get('/search', auth, async (req, res) => {
     });
     const dbMap = Object.fromEntries(dbAssets.map((a) => [a.ticker, a]));
 
-    // 5. Merge: add DB fields and flag
+    // Merge: add DB fields and flag
     const merged = mapped.map((a) => {
       const db = dbMap[a.ticker];
       if (db) {
         return {
           ...a,
           id: db.id,
-          name: db.name, // prefer DB name
+          name: db.name,
           type: db.type,
           expectedReturn: db.expectedReturn,
           riskLevel: db.riskLevel,
@@ -72,7 +79,7 @@ router.get('/search', auth, async (req, res) => {
       return {
         ...a,
         id: null,
-        expectedReturn: 0.10, // 10% default
+        expectedReturn: 0.10,
         riskLevel: 'medium',
         inDatabase: false,
       };
@@ -81,7 +88,7 @@ router.get('/search', auth, async (req, res) => {
     res.json(merged);
   } catch (err) {
     console.error('Search error:', err.message);
-    res.status(500).json({ error: 'Search failed' });
+    res.json([]);
   }
 });
 
