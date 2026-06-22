@@ -193,17 +193,15 @@ router.post('/simulate', auth, async (req, res) => {
 
     // Step 5: Store simulation in database (always in USD)
     await prisma.userSimulation.create({
-      data: {
-        userId,
-        assetId,
-        amountInvested: usdAmount,
-        expectedProfit: profitUSD,
-        originalAmount: amountInvested,
-        originalCurrency: currency,
-        // ✅ Store the price at simulation time (USD)
-        priceAtSimulation: livePrice || null,  // use null if not available
-      },
-    });
+  data: {
+    userId,
+    assetId,
+    amountInvested: usdAmount,
+    expectedProfit: profitUSD,
+    originalAmount: amountInvested,
+    originalCurrency: currency,
+  },
+});
 
     // Step 6: Compute projections
     let exchangeRateFromUSD = 1;
