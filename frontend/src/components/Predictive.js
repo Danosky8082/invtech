@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './Predictive.css';
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
+import AssetSelector from './AssetSelector';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -81,10 +82,6 @@ const Predictive = () => {
   }, [selectedTicker, forecastDays, scenario, fetchAllData]); // ✅ all dependencies included
 
   // Handlers
-  const handleAssetChange = (e) => {
-    setSelectedTicker(e.target.value);
-  };
-
   const handleDaysChange = (e) => {
     setForecastDays(Number(e.target.value));
   };
@@ -158,13 +155,16 @@ const Predictive = () => {
 
       <div className="asset-selector">
         <label>Select Asset:</label>
-        <select value={selectedTicker} onChange={handleAssetChange}>
-          {assets.filter(a => a.ticker).map(asset => (
-            <option key={asset.id} value={asset.ticker}>
-              {asset.name} ({asset.ticker})
-            </option>
-          ))}
-        </select>
+        <AssetSelector
+  onSelect={(asset) => {
+    if (asset && asset.ticker) {
+      setSelectedTicker(asset.ticker);
+      fetchAllData(asset.ticker);
+    }
+  }}
+  value={assets.find(a => a.ticker === selectedTicker)}
+  placeholder="Search for an asset..."
+/>
       </div>
 
       <div className="predictive-controls">

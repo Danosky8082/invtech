@@ -3,6 +3,7 @@ import Simulator from './Simulator';
 import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
 import { getAssets, getHistory, getExchangeRate, api } from '../api';
+import AssetSelector from './AssetSelector';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -214,20 +215,7 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
         <div className="dashboard-grid">
           <div className="simulator-card">
             <h2>📈 Try an investment</h2>
-            <select
-              onChange={(e) =>
-                setSelectedAsset(assets.find(a => a.id === parseInt(e.target.value)))
-              }
-              defaultValue=""
-              className="asset-select"
-            >
-              <option value="" disabled>Select an asset</option>
-              {assets.map(asset => (
-                <option key={asset.id} value={asset.id}>
-                  {asset.name} ({asset.type}) – {asset.riskLevel} risk
-                </option>
-              ))}
-            </select>
+            <AssetSelector onSelect={setSelectedAsset} value={selectedAsset} placeholder="Search for an asset..." />
             {selectedAsset && <Simulator asset={selectedAsset} />}
           </div>
 

@@ -2160,4 +2160,29 @@ a {
                     background: var(--bg-secondary);
                     color: var(--text-secondary);
                 }
+
+                                .asset-selector-react {
+                                    width: 100%;
+                                    max-width: 400px;
+                                    margin: 0.5rem 0;
+                                }
+                
+                                .asset-select__menu {
+                                    z-index: 999 !important;
+                                }
+                
+                                /* Dark mode support */
+                                .dark-mode .asset-selector-react .asset-select__control {
+                                    background: var(--bg-secondary);
+                                    border-color: var(--border-light);
+                                    color: var(--text-primary);
+                                }
+                
+                                .dark-mode .asset-selector-react .asset-select__input {
+                                    color: var(--text-primary);
+                                }
+                
+                                .dark-mode .asset-selector-react .asset-select__single-value {
+                                    color: var(--text-primary);
+                                }
 }
