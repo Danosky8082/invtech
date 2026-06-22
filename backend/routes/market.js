@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const yahooFinance = require('yahoo-finance2');
+const yahooFinance = require('yahoo-finance2'); 
 const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
