@@ -2,13 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const yahooFinance = require('yahoo-finance2');
-let yahooFinance;
-try {
-  yahooFinance = require('yahoo-finance2').default;
-} catch (e) {
-  console.warn('Yahoo Finance module not available, using fallback');
-  yahooFinance = null;
-}
 const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
