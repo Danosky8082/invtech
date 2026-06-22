@@ -23,4 +23,6 @@ export const getHistory = () => API.get('/simulation/history');
 export const getForecast = (ticker) => API.get(`/predictive/forecast/${ticker}`);
 export const getSentiment = (country = 'us') => API.get(`/predictive/sentiment?country=${country}`);
 export const getRiskProfile = () => API.get('/predictive/risk-profile');
+export const getPortfolio = () => API.get('/portfolio');
+
 export { API as api };

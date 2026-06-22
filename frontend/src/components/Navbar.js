@@ -39,7 +39,8 @@ const Navbar = () => {
             <>
               <span className="nav-user">👋 {user?.username || 'Investor'}</span>
               <Link to="/dashboard" className="nav-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-              <Link to="/predictive" className="nav-link" onClick={() => setMenuOpen(false)}>📊 Insights</Link>
+                <Link to="/predictive" className="nav-link" onClick={() => setMenuOpen(false)}>📊 Insights</Link>
+                <Link to="/portfolio" className="nav-link">📂 Portfolio</Link>
               <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
             </>
           )}

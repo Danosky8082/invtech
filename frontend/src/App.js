@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import Contact from './components/Contact';
 import FAQ from './components/FAQ';
 import Predictive from './components/Predictive';
+import Portfolio from './components/Portfolio';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/predictive" element={<Predictive />} /> {/* ✅ new route */}
+        <Route path="/portfolio" element={<Portfolio />} />
       </Routes>
     </BrowserRouter>
   );
