@@ -27,7 +27,23 @@ const Portfolio = () => {
   if (loading) return <div className="container">Loading portfolio...</div>;
   if (error) return <div className="container error-message">{error}</div>;
 
- const { totalInvested, totalValue, holdings } = portfolio || {};
+  const {
+    totalInvested,
+    totalExpectedProfit,
+    totalValue,
+    totalUnrealizedProfit,
+    totalUnrealizedProfitPercent: backendProfitPercent, // may be undefined
+    holdings
+  } = portfolio || {};
+
+  // Compute P&L % if backend doesn't provide it
+  const computedPnLPercent = (() => {
+    if (backendProfitPercent !== undefined) return backendProfitPercent;
+    if (totalInvested > 0 && totalUnrealizedProfit !== undefined) {
+      return (totalUnrealizedProfit / totalInvested) * 100;
+    }
+    return 0;
+  })();
 
   // Prepare pie chart data – only assets with invested > 0
   const pieData = holdings
@@ -38,7 +54,6 @@ const Portfolio = () => {
       ticker: h.ticker,
     })) || [];
 
-  // Helper to format currency
   const formatCurrency = (value) => `$${value?.toFixed(2) || '0.00'}`;
 
   return (
@@ -64,8 +79,8 @@ const Portfolio = () => {
         </div>
         <div className="summary-card">
           <h4>P&L %</h4>
-          <p className={`price ${totalUnrealizedProfitPercent >= 0 ? 'positive' : 'negative'}`}>
-            {totalUnrealizedProfitPercent?.toFixed(2) || '0.00'}%
+          <p className={`price ${computedPnLPercent >= 0 ? 'positive' : 'negative'}`}>
+            {computedPnLPercent.toFixed(2)}%
           </p>
         </div>
         <div className="summary-card">

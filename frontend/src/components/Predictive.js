@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './Predictive.css';
 import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
 import {
@@ -37,8 +37,8 @@ const Predictive = () => {
   const [forecastDays, setForecastDays] = useState(30);
   const [scenario, setScenario] = useState('neutral');
 
-  // Fetch all data (forecast, sentiment, risk profile)
-  const fetchAllData = async (ticker, days = forecastDays, scn = scenario) => {
+  // --- Fetch all data (with useCallback) ---
+  const fetchAllData = useCallback(async (ticker, days = forecastDays, scn = scenario) => {
     try {
       const [forecastRes, sentimentRes, riskRes] = await Promise.all([
         getForecast(ticker, days, scn),
@@ -51,9 +51,9 @@ const Predictive = () => {
     } catch (err) {
       console.error('Error fetching predictive data:', err);
     }
-  };
+  }, [forecastDays, scenario]); // dependencies used inside the function
 
-  // Initial load
+  // --- Initial load ---
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -71,16 +71,16 @@ const Predictive = () => {
       }
     };
     loadData();
-  }, []); // Runs once on mount
+  }, [fetchAllData]); // ✅ fetchAllData is now stable
 
-  // Watcher: refetch when ticker, days, or scenario changes
+  // --- Watcher: refetch when ticker, days, or scenario changes ---
   useEffect(() => {
     if (selectedTicker) {
       fetchAllData(selectedTicker);
     }
-  }, [selectedTicker, forecastDays, scenario]);
+  }, [selectedTicker, forecastDays, scenario, fetchAllData]); // ✅ all dependencies included
 
-  // --- Handlers ---
+  // Handlers
   const handleAssetChange = (e) => {
     setSelectedTicker(e.target.value);
   };
@@ -93,7 +93,6 @@ const Predictive = () => {
     setScenario(e.target.value);
   };
 
-  // --- Toggle dark mode ---
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle('dark-mode', !darkMode);
@@ -101,7 +100,7 @@ const Predictive = () => {
 
   if (loading) return <div className="container">Loading predictive insights...</div>;
 
-  // Chart data
+  // Chart data (unchanged)
   const combinedChartData = {
     labels: [
       ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
@@ -157,7 +156,6 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
-      {/* --- Asset Selector --- */}
       <div className="asset-selector">
         <label>Select Asset:</label>
         <select value={selectedTicker} onChange={handleAssetChange}>
@@ -169,7 +167,6 @@ const Predictive = () => {
         </select>
       </div>
 
-      {/* --- Controls: Forecast Days & Scenario --- */}
       <div className="predictive-controls">
         <div className="control-group">
           <label>Forecast Horizon:</label>
@@ -194,7 +191,6 @@ const Predictive = () => {
         </div>
       </div>
 
-      {/* --- Tabs --- */}
       <div className="predictive-tabs">
         <button
           className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
@@ -216,7 +212,6 @@ const Predictive = () => {
         </button>
       </div>
 
-      {/* --- Tab Content --- */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
