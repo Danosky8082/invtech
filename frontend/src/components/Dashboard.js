@@ -17,7 +17,7 @@ const Dashboard = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
-  const [selectedAsset, setSelectedAsset] = useState(null);
+  
 
   // Helper: fetch with timeout (5 seconds)
   const fetchWithTimeout = (promise, timeoutMs = 5000) => {
