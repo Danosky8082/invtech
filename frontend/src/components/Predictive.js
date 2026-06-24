@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { getAssets, getForecast, getSentiment, getRiskProfile, searchAssets } from '../api';
-import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +11,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -33,8 +33,10 @@ const Predictive = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('forecast');
   const [darkMode, setDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
+  // Load initial assets and default data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -43,6 +45,7 @@ const Predictive = () => {
         if (assetsRes.data.length > 0) {
           const firstTicker = assetsRes.data[0].ticker || 'AAPL';
           setSelectedTicker(firstTicker);
+          setSearchQuery(firstTicker);
           await fetchAllData(firstTicker);
         }
       } catch (err) {
@@ -69,8 +72,9 @@ const Predictive = () => {
     }
   };
 
-  const handleSearch = async (e) => {
+  const handleSearchChange = async (e) => {
     const query = e.target.value;
+    setSearchQuery(query);
     if (query.length < 2) {
       setSearchResults([]);
       return;
@@ -80,13 +84,15 @@ const Predictive = () => {
       setSearchResults(res.data);
     } catch (err) {
       console.error(err);
+      setSearchResults([]);
     }
   };
 
-  const handleSelect = (ticker) => {
+  const handleSelect = (ticker, name) => {
     setSelectedTicker(ticker);
+    setSearchQuery(ticker); // show ticker in input
+    setSearchResults([]);   // clear dropdown
     fetchAllData(ticker);
-    setSearchResults([]); // clear results
   };
 
   const toggleDarkMode = () => {
@@ -95,6 +101,53 @@ const Predictive = () => {
   };
 
   if (loading) return <div className="container">Loading predictive insights...</div>;
+
+  // Combined chart data (historical + forecast)
+  const combinedChartData = {
+    labels: [
+      ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
+      ...(forecast?.forecast?.dates?.map(d => d.slice(5)) || [])
+    ],
+    datasets: [
+      {
+        label: 'Historical Price',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10) || []),
+          ...(forecast?.forecast?.prices?.map(() => null) || [])
+        ],
+        borderColor: '#1e3c72',
+        tension: 0.3,
+      },
+      {
+        label: 'Forecast',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
+          ...(forecast?.forecast?.prices || [])
+        ],
+        borderColor: '#2e7d32',
+        borderDash: [5, 5],
+        tension: 0.3,
+      },
+      {
+        label: 'Confidence Band',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
+          ...(forecast?.forecast?.upper || [])
+        ],
+        borderColor: 'rgba(46, 125, 50, 0.2)',
+        backgroundColor: 'rgba(46, 125, 50, 0.05)',
+        fill: false,
+        borderDash: [2, 2],
+        tension: 0.3,
+      }
+    ],
+  };
+
+  const getSentimentEmoji = (sentiment) => {
+    if (sentiment === 'positive') return '🟢';
+    if (sentiment === 'negative') return '🔴';
+    return '🟡';
+  };
 
   return (
     <div className="predictive-container">
@@ -105,17 +158,19 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
+      {/* Controlled search input */}
       <div className="asset-search">
         <input
           type="text"
           placeholder="Search for an asset (e.g., AAPL)..."
-          onChange={handleSearch}
+          value={searchQuery}
+          onChange={handleSearchChange}
           className="asset-search-input"
         />
         {searchResults.length > 0 && (
           <ul className="search-results">
             {searchResults.map((asset) => (
-              <li key={asset.ticker} onClick={() => handleSelect(asset.ticker)}>
+              <li key={asset.ticker} onClick={() => handleSelect(asset.ticker, asset.name)}>
                 <strong>{asset.ticker}</strong> – {asset.name} ({asset.type})
                 {asset.inDatabase && ' ⭐'}
               </li>
@@ -124,18 +179,29 @@ const Predictive = () => {
         )}
       </div>
 
+      {/* Tabs */}
       <div className="predictive-tabs">
-        <button className={activeTab === 'forecast' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('forecast')}>
+        <button
+          className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('forecast')}
+        >
           📈 Forecast
         </button>
-        <button className={activeTab === 'sentiment' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('sentiment')}>
+        <button
+          className={activeTab === 'sentiment' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('sentiment')}
+        >
           📰 Sentiment
         </button>
-        <button className={activeTab === 'risk' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('risk')}>
+        <button
+          className={activeTab === 'risk' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('risk')}
+        >
           🛡️ Risk Profile
         </button>
       </div>
 
+      {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
@@ -164,8 +230,33 @@ const Predictive = () => {
 
             <div className="chart-container">
               <h3>Price Forecast (30 Days)</h3>
-              {/* simplified chart – you can use the same chart as before */}
-              <p>Chart will be displayed here</p>
+              {combinedChartData && (
+                <Line
+                  data={combinedChartData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: 'top' },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            return `${context.dataset.label}: $${context.parsed.y?.toFixed(2) || 'N/A'}`;
+                          }
+                        }
+                      }
+                    },
+                    scales: {
+                      y: {
+                        ticks: {
+                          callback: function(value) {
+                            return '$' + value;
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              )}
             </div>
 
             <div className="forecast-insights">
@@ -183,12 +274,13 @@ const Predictive = () => {
           <div className="sentiment-section">
             <div className="sentiment-summary">
               <div className="sentiment-score">
-                <span className="sentiment-emoji">{sentiment.sentiment === 'positive' ? '🟢' : sentiment.sentiment === 'negative' ? '🔴' : '🟡'}</span>
+                <span className="sentiment-emoji">{getSentimentEmoji(sentiment.sentiment)}</span>
                 <span className="sentiment-label">{sentiment.sentiment?.toUpperCase()}</span>
                 <span className="sentiment-value">Score: {sentiment.score}</span>
               </div>
               <p className="sentiment-summary-text">{sentiment.summary}</p>
             </div>
+
             <div className="sentiment-articles">
               <h4>📰 Top News Headlines</h4>
               {sentiment.articles?.length > 0 ? (
@@ -219,42 +311,37 @@ const Predictive = () => {
               </div>
               <p className="risk-message">{riskProfile.message}</p>
             </div>
+
             <div className="allocation-card">
               <h4>📊 Recommended Allocation</h4>
               <div className="allocation-bars">
-                <div className="allocation-item">
-                  <span>Stocks</span>
-                  <div className="allocation-bar">
-                    <div className="allocation-fill stocks" style={{ width: `${riskProfile.recommendedAllocation?.stocks || 60}%` }}>
-                      {riskProfile.recommendedAllocation?.stocks || 60}%
+                {['stocks', 'bonds', 'crypto', 'cash'].map((key) => {
+                  const value = riskProfile.recommendedAllocation?.[key] || 0;
+                  return (
+                    <div className="allocation-item" key={key}>
+                      <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                      <div className="allocation-bar">
+                        <div className={`allocation-fill ${key}`} style={{ width: `${value}%` }}>
+                          {value}%
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="allocation-item">
-                  <span>Bonds</span>
-                  <div className="allocation-bar">
-                    <div className="allocation-fill bonds" style={{ width: `${riskProfile.recommendedAllocation?.bonds || 30}%` }}>
-                      {riskProfile.recommendedAllocation?.bonds || 30}%
-                    </div>
-                  </div>
-                </div>
-                <div className="allocation-item">
-                  <span>Crypto</span>
-                  <div className="allocation-bar">
-                    <div className="allocation-fill crypto" style={{ width: `${riskProfile.recommendedAllocation?.crypto || 5}%` }}>
-                      {riskProfile.recommendedAllocation?.crypto || 5}%
-                    </div>
-                  </div>
-                </div>
-                <div className="allocation-item">
-                  <span>Cash</span>
-                  <div className="allocation-bar">
-                    <div className="allocation-fill cash" style={{ width: `${riskProfile.recommendedAllocation?.cash || 5}%` }}>
-                      {riskProfile.recommendedAllocation?.cash || 5}%
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
+            </div>
+
+            <div className="risk-advice">
+              <h4>💡 Investment Advice</h4>
+              {riskProfile.riskTolerance === 'aggressive' && (
+                <p>You have an aggressive risk profile. Consider growth stocks, tech sectors, and emerging markets. Be prepared for higher volatility.</p>
+              )}
+              {riskProfile.riskTolerance === 'conservative' && (
+                <p>You have a conservative risk profile. Focus on bonds, dividend stocks, and stable blue-chip companies. Capital preservation is key.</p>
+              )}
+              {riskProfile.riskTolerance === 'medium' && (
+                <p>You have a balanced risk profile. A mix of growth stocks, bonds, and some alternative assets is recommended. Diversify across sectors.</p>
+              )}
             </div>
           </div>
         )}
