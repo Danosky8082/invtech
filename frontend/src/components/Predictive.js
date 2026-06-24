@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getForecast, getSentiment, getRiskProfile, searchAssets } from '../api';
+import './Predictive.css';
+import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
+import AsyncAssetSelector from './AsyncAssetSelector';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,24 +27,41 @@ ChartJS.register(
 );
 
 const Predictive = () => {
+  const [assets, setAssets] = useState([]);
+  const [selectedTicker, setSelectedTicker] = useState('AAPL');
   const [forecast, setForecast] = useState(null);
   const [sentiment, setSentiment] = useState(null);
   const [riskProfile, setRiskProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('forecast');
   const [darkMode, setDarkMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
 
-  // Load default data on mount
+  // Load DB assets (for star indicator) and initial data
   useEffect(() => {
-    const loadDefault = async () => {
-      // Default to AAPL
-      setSearchQuery('AAPL');
-      await fetchAllData('AAPL');
-      setLoading(false);
+    const loadData = async () => {
+      try {
+        const assetsRes = await getAssets();
+        setAssets(assetsRes.data);
+        // If there are assets in DB, use the first one as default
+        if (assetsRes.data.length > 0) {
+          const defaultTicker = assetsRes.data[0].ticker || 'AAPL';
+          setSelectedTicker(defaultTicker);
+          await fetchAllData(defaultTicker);
+        } else {
+          // Fallback to AAPL if no DB assets
+          setSelectedTicker('AAPL');
+          await fetchAllData('AAPL');
+        }
+      } catch (err) {
+        console.error('Error loading DB assets:', err);
+        // Fallback
+        setSelectedTicker('AAPL');
+        await fetchAllData('AAPL');
+      } finally {
+        setLoading(false);
+      }
     };
-    loadDefault();
+    loadData();
   }, []);
 
   const fetchAllData = async (ticker) => {
@@ -52,7 +71,6 @@ const Predictive = () => {
         getSentiment('us'),
         getRiskProfile(),
       ]);
-      console.log('[Forecast] Received:', forecastRes.data);
       setForecast(forecastRes.data);
       setSentiment(sentimentRes.data);
       setRiskProfile(riskRes.data);
@@ -61,81 +79,52 @@ const Predictive = () => {
     }
   };
 
-  const handleSearchChange = async (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    try {
-      const res = await searchAssets(query);
-      setSearchResults(res.data);
-    } catch (err) {
-      console.error(err);
-      setSearchResults([]);
-    }
-  };
-
-  const handleSelect = (ticker) => {
-    setSearchQuery(ticker);
-    setSearchResults([]);
-    fetchAllData(ticker);
-  };
+  if (loading) return <div className="container">Loading predictive insights...</div>;
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle('dark-mode', !darkMode);
   };
 
-  if (loading) return <div className="container">Loading predictive insights...</div>;
-
-  // Build chart data
-  const hasHistoricalData = forecast?.historical?.prices && forecast.historical.prices.length > 0;
-  const hasForecastData = forecast?.forecast?.prices && forecast.forecast.prices.length > 0;
-
-  const chartLabels = [
-    ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
-    ...(forecast?.forecast?.dates?.map(d => d.slice(5)) || [])
-  ];
-
-  const chartDatasets = [
-    {
-      label: 'Historical Price',
-      data: [
-        ...(forecast?.historical?.prices?.slice(-10) || []),
-        ...(forecast?.forecast?.prices?.map(() => null) || [])
-      ],
-      borderColor: '#1e3c72',
-      tension: 0.3,
-    },
-    {
-      label: 'Forecast',
-      data: [
-        ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
-        ...(forecast?.forecast?.prices || [])
-      ],
-      borderColor: '#2e7d32',
-      borderDash: [5, 5],
-      tension: 0.3,
-    },
-    {
-      label: 'Confidence Band',
-      data: [
-        ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
-        ...(forecast?.forecast?.upper || [])
-      ],
-      borderColor: 'rgba(46, 125, 50, 0.2)',
-      backgroundColor: 'rgba(46, 125, 50, 0.05)',
-      fill: false,
-      borderDash: [2, 2],
-      tension: 0.3,
-    }
-  ];
-
+  // Combined chart data (historical + forecast)
   const combinedChartData = {
-    labels: chartLabels,
-    datasets: chartDatasets,
+    labels: [
+      ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
+      ...(forecast?.forecast?.dates?.map(d => d.slice(5)) || [])
+    ],
+    datasets: [
+      {
+        label: 'Historical Price',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10) || []),
+          ...(forecast?.forecast?.prices?.map(() => null) || [])
+        ],
+        borderColor: '#1e3c72',
+        tension: 0.3,
+      },
+      {
+        label: 'Forecast',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
+          ...(forecast?.forecast?.prices || [])
+        ],
+        borderColor: '#2e7d32',
+        borderDash: [5, 5],
+        tension: 0.3,
+      },
+      {
+        label: 'Confidence Band',
+        data: [
+          ...(forecast?.historical?.prices?.slice(-10)?.map(() => null) || []),
+          ...(forecast?.forecast?.upper || [])
+        ],
+        borderColor: 'rgba(46, 125, 50, 0.2)',
+        backgroundColor: 'rgba(46, 125, 50, 0.05)',
+        fill: false,
+        borderDash: [2, 2],
+        tension: 0.3,
+      }
+    ],
   };
 
   const getSentimentEmoji = (sentiment) => {
@@ -146,6 +135,7 @@ const Predictive = () => {
 
   return (
     <div className="predictive-container">
+      {/* Dark Mode Toggle Button */}
       <button className="theme-toggle" onClick={toggleDarkMode}>
         {darkMode ? '☀️ Light' : '🌙 Dark'}
       </button>
@@ -153,38 +143,41 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
-      <div className="asset-search">
-        <input
-          type="text"
-          placeholder="Search for an asset (e.g., AAPL)..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="asset-search-input"
-        />
-        {searchResults.length > 0 && (
-          <ul className="search-results">
-            {searchResults.map((asset) => (
-              <li key={asset.ticker} onClick={() => handleSelect(asset.ticker)}>
-                <strong>{asset.ticker}</strong> – {asset.name} ({asset.type})
-                {asset.inDatabase && ' ⭐'}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Dynamic Asset Selector */}
+      <AsyncAssetSelector
+        onSelect={(asset) => {
+          if (asset && asset.ticker) {
+            setSelectedTicker(asset.ticker);
+            fetchAllData(asset.ticker);
+          }
+        }}
+        value={assets.find(a => a.ticker === selectedTicker)}
+        placeholder="Search for any asset..."
+      />
 
+      {/* Tabs */}
       <div className="predictive-tabs">
-        <button className={activeTab === 'forecast' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('forecast')}>
+        <button 
+          className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('forecast')}
+        >
           📈 Forecast
         </button>
-        <button className={activeTab === 'sentiment' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('sentiment')}>
+        <button 
+          className={activeTab === 'sentiment' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('sentiment')}
+        >
           📰 Sentiment
         </button>
-        <button className={activeTab === 'risk' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('risk')}>
+        <button 
+          className={activeTab === 'risk' ? 'tab-active' : 'tab'}
+          onClick={() => setActiveTab('risk')}
+        >
           🛡️ Risk Profile
         </button>
       </div>
 
+      {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
@@ -211,14 +204,13 @@ const Predictive = () => {
               </div>
             </div>
 
-            <div className="chart-container" style={{ minHeight: '300px', position: 'relative' }}>
+            <div className="chart-container">
               <h3>Price Forecast (30 Days)</h3>
-              {hasHistoricalData && hasForecastData ? (
-                <Line
+              {combinedChartData && (
+                <Line 
                   data={combinedChartData}
                   options={{
                     responsive: true,
-                    maintainAspectRatio: false,
                     plugins: {
                       legend: { position: 'top' },
                       tooltip: {
@@ -240,10 +232,7 @@ const Predictive = () => {
                     }
                   }}
                 />
-              ) : (
-                <p>No forecast data available for this asset.</p>
               )}
-              {forecast.note && <p style={{ fontStyle: 'italic', color: '#888', fontSize: '0.85rem' }}>{forecast.note}</p>}
             </div>
 
             <div className="forecast-insights">
@@ -252,13 +241,6 @@ const Predictive = () => {
                 <li><strong>Confidence:</strong> {forecast.recommendation?.confidence || 'N/A'}</li>
                 <li><strong>30-Day Projection:</strong> ${forecast.forecast?.prices?.[forecast.forecast.prices.length - 1]?.toFixed(2) || 'N/A'}</li>
                 <li><strong>Volatility Level:</strong> {forecast.volatility > 0.03 ? 'High' : forecast.volatility > 0.02 ? 'Medium' : 'Low'}</li>
-                {forecast.metrics && (
-                  <>
-                    <li><strong>Annualized Return:</strong> {forecast.metrics.annualizedReturn}%</li>
-                    <li><strong>Sharpe Ratio:</strong> {forecast.metrics.sharpeRatio}</li>
-                    <li><strong>Max Drawdown:</strong> {forecast.metrics.maxDrawdown}%</li>
-                  </>
-                )}
               </ul>
             </div>
           </div>
@@ -309,19 +291,38 @@ const Predictive = () => {
             <div className="allocation-card">
               <h4>📊 Recommended Allocation</h4>
               <div className="allocation-bars">
-                {['stocks', 'bonds', 'crypto', 'cash'].map((key) => {
-                  const value = riskProfile.recommendedAllocation?.[key] || 0;
-                  return (
-                    <div className="allocation-item" key={key}>
-                      <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                      <div className="allocation-bar">
-                        <div className={`allocation-fill ${key}`} style={{ width: `${value}%` }}>
-                          {value}%
-                        </div>
-                      </div>
+                <div className="allocation-item">
+                  <span>Stocks</span>
+                  <div className="allocation-bar">
+                    <div className="allocation-fill stocks" style={{ width: `${riskProfile.recommendedAllocation?.stocks || 60}%` }}>
+                      {riskProfile.recommendedAllocation?.stocks || 60}%
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
+                <div className="allocation-item">
+                  <span>Bonds</span>
+                  <div className="allocation-bar">
+                    <div className="allocation-fill bonds" style={{ width: `${riskProfile.recommendedAllocation?.bonds || 30}%` }}>
+                      {riskProfile.recommendedAllocation?.bonds || 30}%
+                    </div>
+                  </div>
+                </div>
+                <div className="allocation-item">
+                  <span>Crypto</span>
+                  <div className="allocation-bar">
+                    <div className="allocation-fill crypto" style={{ width: `${riskProfile.recommendedAllocation?.crypto || 5}%` }}>
+                      {riskProfile.recommendedAllocation?.crypto || 5}%
+                    </div>
+                  </div>
+                </div>
+                <div className="allocation-item">
+                  <span>Cash</span>
+                  <div className="allocation-bar">
+                    <div className="allocation-fill cash" style={{ width: `${riskProfile.recommendedAllocation?.cash || 5}%` }}>
+                      {riskProfile.recommendedAllocation?.cash || 5}%
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
