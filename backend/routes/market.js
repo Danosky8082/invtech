@@ -1,8 +1,16 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const yahooFinance = require('yahoo-finance2'); // ✅ only once, no `.default`
 const router = express.Router();
+
+// ✅ Try to load yahoo-finance2 with fallback
+let yahooFinance;
+try {
+  yahooFinance = require('yahoo-finance2');
+} catch (e) {
+  console.warn('Yahoo Finance module not available, using fallback.');
+  yahooFinance = null;
+}
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
@@ -78,7 +86,7 @@ router.get('/detect-country', async (req, res) => {
   }
 });
 
-// ==================== NEWS (ALWAYS RETURNS ARRAY) ====================
+// ==================== NEWS ====================
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
@@ -141,7 +149,7 @@ router.get('/stock/:symbol', async (req, res) => {
   try {
     let price = 100.00;
     // ✅ Safe check: only call if yahooFinance exists and has quote method
-    if (typeof yahooFinance !== 'undefined' && yahooFinance && typeof yahooFinance.quote === 'function') {
+    if (yahooFinance && typeof yahooFinance.quote === 'function') {
       const quote = await yahooFinance.quote(symbol);
       if (quote && quote.regularMarketPrice) price = quote.regularMarketPrice;
     }
