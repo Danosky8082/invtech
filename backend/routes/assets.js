@@ -1,10 +1,25 @@
 const express = require('express');
-const yahooFinance = require('yahoo-finance2');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// GET /assets – list all DB assets (for dropdown)
+// Static list of popular assets (fallback)
+const POPULAR_ASSETS = [
+  { ticker: 'AAPL', name: 'Apple Inc.', type: 'stock' },
+  { ticker: 'TSLA', name: 'Tesla Inc.', type: 'stock' },
+  { ticker: 'MSFT', name: 'Microsoft Corp', type: 'stock' },
+  { ticker: 'GOOGL', name: 'Alphabet Inc.', type: 'stock' },
+  { ticker: 'AMZN', name: 'Amazon.com Inc.', type: 'stock' },
+  { ticker: 'NFLX', name: 'Netflix', type: 'stock' },
+  { ticker: 'NVDA', name: 'NVIDIA Corp', type: 'stock' },
+  { ticker: 'META', name: 'Meta Platforms', type: 'stock' },
+  { ticker: 'JPM', name: 'JPMorgan Chase', type: 'stock' },
+  { ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', type: 'etf' },
+  { ticker: 'BTC', name: 'Bitcoin', type: 'crypto' },
+  { ticker: 'ETH', name: 'Ethereum', type: 'crypto' },
+];
+
+// GET /assets – list all DB assets
 router.get('/', auth, async (req, res) => {
   try {
     const assets = await prisma.asset.findMany({
@@ -12,84 +27,35 @@ router.get('/', auth, async (req, res) => {
     });
     res.json(assets);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching assets:', err.message);
     res.status(500).json({ error: 'Failed to fetch assets' });
   }
 });
 
-// GET /assets/search – search Yahoo Finance + merge with DB (SAFE)
+// GET /assets/search?query=... – always returns something
 router.get('/search', auth, async (req, res) => {
   const { query } = req.query;
   if (!query || query.length < 2) {
     return res.json([]);
   }
 
-  try {
-    let searchResults;
-    // ✅ Safe check: only call if yahooFinance.search exists
-    if (typeof yahooFinance !== 'undefined' && yahooFinance && typeof yahooFinance.search === 'function') {
-      searchResults = await yahooFinance.search(query);
-    } else {
-      // Fallback: return empty array
-      return res.json([]);
-    }
+  // Filter the static list based on the query
+  const filtered = POPULAR_ASSETS.filter(a =>
+    a.ticker.toLowerCase().includes(query.toLowerCase()) ||
+    a.name.toLowerCase().includes(query.toLowerCase())
+  );
 
-    const quotes = searchResults.quotes || [];
+  // Format response (same as before)
+  const result = filtered.map(a => ({
+    ...a,
+    inDatabase: false,
+    expectedReturn: 0.10,
+    riskLevel: 'medium',
+    id: null,
+  }));
 
-    // Filter: only equities, ETFs, and mutual funds
-    const filtered = quotes.filter(
-      (q) =>
-        q.quoteType === 'EQUITY' ||
-        q.quoteType === 'ETF' ||
-        q.quoteType === 'MUTUALFUND'
-    );
-
-    // Map to our asset format
-    const mapped = filtered.map((q) => ({
-      ticker: q.symbol,
-      name: q.longName || q.shortName || q.symbol,
-      type: (q.quoteType || 'stock').toLowerCase(),
-      exchange: q.exchange,
-      inDatabase: false,
-    }));
-
-    // Fetch matching DB assets
-    const tickers = mapped.map((a) => a.ticker);
-    const dbAssets = await prisma.asset.findMany({
-      where: { ticker: { in: tickers } },
-      select: { id: true, ticker: true, name: true, type: true, expectedReturn: true, riskLevel: true },
-    });
-    const dbMap = Object.fromEntries(dbAssets.map((a) => [a.ticker, a]));
-
-    // Merge: add DB fields and flag
-    const merged = mapped.map((a) => {
-      const db = dbMap[a.ticker];
-      if (db) {
-        return {
-          ...a,
-          id: db.id,
-          name: db.name,
-          type: db.type,
-          expectedReturn: db.expectedReturn,
-          riskLevel: db.riskLevel,
-          inDatabase: true,
-        };
-      }
-      // Default values for external assets
-      return {
-        ...a,
-        id: null,
-        expectedReturn: 0.10,
-        riskLevel: 'medium',
-        inDatabase: false,
-      };
-    });
-
-    res.json(merged);
-  } catch (err) {
-    console.error('Search error:', err.message);
-    res.json([]);
-  }
+  console.log(`[Search] Returning ${result.length} results for "${query}"`);
+  res.json(result);
 });
 
 module.exports = router;
