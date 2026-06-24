@@ -28,7 +28,7 @@ ChartJS.register(
 
 const Predictive = () => {
   const [assets, setAssets] = useState([]);
-  const [selectedTicker, setSelectedTicker] = useState('AAPL');
+  const [selectedAsset, setSelectedAsset] = useState(null); // store the full asset object
   const [forecast, setForecast] = useState(null);
   const [sentiment, setSentiment] = useState(null);
   const [riskProfile, setRiskProfile] = useState(null);
@@ -36,34 +36,7 @@ const Predictive = () => {
   const [activeTab, setActiveTab] = useState('forecast');
   const [darkMode, setDarkMode] = useState(false);
 
-  // Load DB assets (for star indicator) and initial data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const assetsRes = await getAssets();
-        setAssets(assetsRes.data);
-        // If there are assets in DB, use the first one as default
-        if (assetsRes.data.length > 0) {
-          const defaultTicker = assetsRes.data[0].ticker || 'AAPL';
-          setSelectedTicker(defaultTicker);
-          await fetchAllData(defaultTicker);
-        } else {
-          // Fallback to AAPL if no DB assets
-          setSelectedTicker('AAPL');
-          await fetchAllData('AAPL');
-        }
-      } catch (err) {
-        console.error('Error loading DB assets:', err);
-        // Fallback
-        setSelectedTicker('AAPL');
-        await fetchAllData('AAPL');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
+  // Helper to fetch all data for a given ticker
   const fetchAllData = async (ticker) => {
     try {
       const [forecastRes, sentimentRes, riskRes] = await Promise.all([
@@ -76,6 +49,42 @@ const Predictive = () => {
       setRiskProfile(riskRes.data);
     } catch (err) {
       console.error('Error fetching predictive data:', err);
+    }
+  };
+
+  // Load DB assets and set initial default
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const assetsRes = await getAssets();
+        setAssets(assetsRes.data);
+        if (assetsRes.data.length > 0) {
+          // Use the first asset as default
+          const firstAsset = assetsRes.data[0];
+          setSelectedAsset(firstAsset);
+          await fetchAllData(firstAsset.ticker || 'AAPL');
+        } else {
+          // Fallback to a default ticker (if no DB assets)
+          setSelectedAsset({ ticker: 'AAPL', name: 'Apple Inc.' });
+          await fetchAllData('AAPL');
+        }
+      } catch (err) {
+        console.error('Error loading DB assets:', err);
+        // Fallback
+        setSelectedAsset({ ticker: 'AAPL', name: 'Apple Inc.' });
+        await fetchAllData('AAPL');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // When user selects an asset from the dropdown
+  const handleAssetSelect = (asset) => {
+    if (asset && asset.ticker) {
+      setSelectedAsset(asset);
+      fetchAllData(asset.ticker);
     }
   };
 
@@ -143,15 +152,19 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
+      {/* Display selected asset name */}
+      {selectedAsset && (
+        <div className="selected-asset-display">
+          <h2>{selectedAsset.name} ({selectedAsset.ticker})</h2>
+          {selectedAsset.inDatabase && <span className="db-badge">⭐ In Database</span>}
+          <span className="asset-type">{selectedAsset.type}</span>
+        </div>
+      )}
+
       {/* Dynamic Asset Selector */}
       <AsyncAssetSelector
-        onSelect={(asset) => {
-          if (asset && asset.ticker) {
-            setSelectedTicker(asset.ticker);
-            fetchAllData(asset.ticker);
-          }
-        }}
-        value={assets.find(a => a.ticker === selectedTicker)}
+        onSelect={handleAssetSelect}
+        value={selectedAsset}
         placeholder="Search for any asset..."
       />
 

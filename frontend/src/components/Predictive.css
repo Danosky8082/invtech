@@ -604,4 +604,41 @@
     .summary-card .price {
         font-size: 1.2rem;
     }
+
+        .selected-asset-display {
+            background: var(--bg-card, #f8fafc);
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0.5rem 0 1rem 0;
+            border: 1px solid var(--border-light, #e2e8f0);
+        }
+    
+        .selected-asset-display h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary, #0a1e3a);
+        }
+    
+        .selected-asset-display .db-badge {
+            background: #f6d365;
+            color: #1e3c72;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+    
+        .selected-asset-display .asset-type {
+            background: #e2e8f0;
+            color: #1e3c72;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
 }
