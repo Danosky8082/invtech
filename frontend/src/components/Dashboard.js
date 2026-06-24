@@ -3,7 +3,6 @@ import Simulator from './Simulator';
 import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
 import { getAssets, getHistory, getExchangeRate, api } from '../api';
-import AssetSelector from './AssetSelector';
 import AsyncAssetSelector from './AsyncAssetSelector';
 
 const Dashboard = () => {
