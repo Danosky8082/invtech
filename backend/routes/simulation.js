@@ -154,7 +154,6 @@ router.post('/simulate', auth, async (req, res) => {
     return res.status(400).json({ msg: 'Invalid amount' });
   }
 
-  // Validate that either assetId or ticker is provided
   if (!assetId && !ticker) {
     return res.status(400).json({ msg: 'Either assetId or ticker must be provided' });
   }
@@ -186,9 +185,6 @@ router.post('/simulate', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Asset not found' });
     }
 
-    // Use the asset's ticker for any further operations
-    const assetTicker = asset.ticker;
-
     // Step 2: Convert amount to USD (internal) using fallback
     let usdAmount = amountInvested;
     if (currency !== 'USD') {
@@ -202,9 +198,9 @@ router.post('/simulate', auth, async (req, res) => {
     // Step 4: Fetch live price (if available)
     let livePrice = null;
     let livePriceInUserCurrency = null;
-    if (assetTicker) {
+    if (asset.ticker) {
       try {
-        const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${assetTicker}`);
+        const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${asset.ticker}`);
         livePrice = stockRes.data.price;
         if (currency !== 'USD' && livePrice) {
           livePriceInUserCurrency = await convertWithFallback('USD', currency, livePrice);
@@ -231,8 +227,8 @@ router.post('/simulate', auth, async (req, res) => {
         expectedProfit: profitUSD,
         originalAmount: amountInvested,
         originalCurrency: currency,
-        tickerAtSimulation: ticker || assetTicker, // store the ticker used
-        // optionally store live price if needed: priceAtSimulation: livePrice,
+        // ❌ Remove tickerAtSimulation to avoid Prisma error
+        // tickerAtSimulation: ticker || asset.ticker,
       },
     });
 
@@ -280,54 +276,8 @@ router.post('/simulate', auth, async (req, res) => {
       livePrice: livePriceInUserCurrency,
       projections,
     });
-
-
-    // Step 7: Compute projections
-    let exchangeRateFromUSD = 1;
-    if (currency !== 'USD') {
-      try {
-        const backResult = await convertCurrency('USD', currency, 1);
-        exchangeRateFromUSD = backResult.amount;
-      } catch (err) {
-        exchangeRateFromUSD = FALLBACK_RATES[currency] || 1;
-      }
-    }
-    const projections = computeProjections(
-      usdAmount,
-      asset.expectedReturn,
-      [1, 3, 5, 10],
-      currency,
-      exchangeRateFromUSD
-    );
-
-    // Step 8: Currency symbol for display
-    const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
-    const symbol = currencySymbols[currency] || '$';
-
-    // Step 9: Generate advice
-    const advice = generateAdvice(
-      asset,
-      amountInvested,
-      currency,
-      symbol,
-      asset.expectedReturn,
-      livePriceInUserCurrency
-    );
-
-    res.json({
-      assetName: asset.name,
-      amountInvested: amountInvested,
-      amountCurrency: currency,
-      amountSymbol: symbol,
-      expectedProfit: profitDisplay,
-      totalReturn: totalDisplay,
-      riskLevel: asset.riskLevel,
-      advice,
-      livePrice: livePriceInUserCurrency,
-      projections,
-    });
   } catch (err) {
-    console.error(err);
+    console.error('Simulation error:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
