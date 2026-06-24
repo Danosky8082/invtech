@@ -6,7 +6,9 @@ const router = express.Router();
 // ✅ Try to load yahoo-finance2 with fallback
 let yahooFinance;
 try {
-  yahooFinance = require('yahoo-finance2');
+  const module = require('yahoo-finance2');
+  // In version 3, it's a default export, but sometimes it's a named export.
+  yahooFinance = module.default || module;
 } catch (e) {
   console.warn('Yahoo Finance module not available, using fallback.');
   yahooFinance = null;

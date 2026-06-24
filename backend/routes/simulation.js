@@ -224,15 +224,63 @@ router.post('/simulate', auth, async (req, res) => {
 
     // Step 6: Store simulation in database (always in USD)
     await prisma.userSimulation.create({
-  data: {
-    userId,
-    assetId,
-    amountInvested: usdAmount,
-    expectedProfit: profitUSD,
-    originalAmount: amountInvested,
-    originalCurrency: currency,
+      data: {
+        userId,
+        assetId: asset.id,
+        amountInvested: usdAmount,
+        expectedProfit: profitUSD,
+        originalAmount: amountInvested,
+        originalCurrency: currency,
+        tickerAtSimulation: ticker || assetTicker, // store the ticker used
+        // optionally store live price if needed: priceAtSimulation: livePrice,
       },
     });
+
+    // Step 7: Compute projections
+    let exchangeRateFromUSD = 1;
+    if (currency !== 'USD') {
+      try {
+        const backResult = await convertCurrency('USD', currency, 1);
+        exchangeRateFromUSD = backResult.amount;
+      } catch (err) {
+        exchangeRateFromUSD = FALLBACK_RATES[currency] || 1;
+      }
+    }
+    const projections = computeProjections(
+      usdAmount,
+      asset.expectedReturn,
+      [1, 3, 5, 10],
+      currency,
+      exchangeRateFromUSD
+    );
+
+    // Step 8: Currency symbol for display
+    const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
+    const symbol = currencySymbols[currency] || '$';
+
+    // Step 9: Generate advice
+    const advice = generateAdvice(
+      asset,
+      amountInvested,
+      currency,
+      symbol,
+      asset.expectedReturn,
+      livePriceInUserCurrency
+    );
+
+    res.json({
+      assetName: asset.name,
+      amountInvested: amountInvested,
+      amountCurrency: currency,
+      amountSymbol: symbol,
+      expectedProfit: profitDisplay,
+      totalReturn: totalDisplay,
+      riskLevel: asset.riskLevel,
+      advice,
+      livePrice: livePriceInUserCurrency,
+      projections,
+    });
+
 
     // Step 7: Compute projections
     let exchangeRateFromUSD = 1;
