@@ -1,13 +1,11 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const yahooFinance = require('yahoo-finance2'); 
+const yahooFinance = require('yahoo-finance2'); // ✅ only once, no `.default`
 const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
-  // Each mock entry now includes a real (example) news URL.
-  // Replace with actual news links if you have a real API key.
   const mockMap = {
     us: [
       { title: 'US markets rally on tech earnings', description: 'Tech stocks lead gains.', url: 'https://www.bloomberg.com/news/articles/2025-01-15/us-markets-rally', imageUrl: 'https://placehold.co/300x200?text=US+News' },
@@ -80,12 +78,11 @@ router.get('/detect-country', async (req, res) => {
   }
 });
 
-// ==================== NEWS (ALWAYS RETURNS ARRAY WITH REAL URLS) ====================
+// ==================== NEWS (ALWAYS RETURNS ARRAY) ====================
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
   const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
-  // If no API key, return mock data with real‑looking URLs
   if (!GNEWS_API_KEY) {
     console.log('No GNews API key – using mock news with example URLs');
     return res.json(getMockNewsArray(country));
@@ -107,7 +104,7 @@ router.get('/news', async (req, res) => {
     const formatted = articles.slice(0, 15).map(a => ({
       title: a.title || 'Business News',
       description: a.description || 'Read more...',
-      url: a.url || '#',  // GNews provides the actual article URL
+      url: a.url || '#',
       imageUrl: a.image || 'https://placehold.co/300x200?text=News',
       publishDate: a.publishedAt || new Date().toISOString()
     }));
@@ -135,7 +132,7 @@ router.get('/treasury-yields', async (req, res) => {
   }
 });
 
-// ==================== STOCK QUOTE ====================
+// ==================== STOCK QUOTE (SAFE) ====================
 router.get('/stock/:symbol', async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(symbol)) {
@@ -143,9 +140,10 @@ router.get('/stock/:symbol', async (req, res) => {
   }
   try {
     let price = 100.00;
-    if (yahooFinance) {
+    // ✅ Safe check: only call if yahooFinance exists and has quote method
+    if (typeof yahooFinance !== 'undefined' && yahooFinance && typeof yahooFinance.quote === 'function') {
       const quote = await yahooFinance.quote(symbol);
-      if (quote.regularMarketPrice) price = quote.regularMarketPrice;
+      if (quote && quote.regularMarketPrice) price = quote.regularMarketPrice;
     }
     res.json({
       symbol,
@@ -153,7 +151,7 @@ router.get('/stock/:symbol', async (req, res) => {
       change: 0,
       changePercent: 0,
       volume: 0,
-      note: yahooFinance ? '' : 'estimated (Yahoo unavailable)'
+      note: (yahooFinance && typeof yahooFinance.quote === 'function') ? '' : 'estimated (Yahoo unavailable)'
     });
   } catch (err) {
     console.error('Stock fetch error:', err.message);

@@ -17,7 +17,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// GET /assets/search?query=... – search Yahoo Finance + merge with DB
+// GET /assets/search – search Yahoo Finance + merge with DB (SAFE)
 router.get('/search', auth, async (req, res) => {
   const { query } = req.query;
   if (!query || query.length < 2) {
@@ -26,11 +26,11 @@ router.get('/search', auth, async (req, res) => {
 
   try {
     let searchResults;
-    try {
+    // ✅ Safe check: only call if yahooFinance.search exists
+    if (typeof yahooFinance !== 'undefined' && yahooFinance && typeof yahooFinance.search === 'function') {
       searchResults = await yahooFinance.search(query);
-    } catch (searchErr) {
-      console.error('Yahoo search error:', searchErr.message);
-      // Return empty array so frontend doesn't break
+    } else {
+      // Fallback: return empty array
       return res.json([]);
     }
 
