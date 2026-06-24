@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAssets, getForecast, getSentiment, getRiskProfile, searchAssets } from '../api';
-import { Line } from 'react-chartjs-2';
+import { getForecast, getSentiment, getRiskProfile, searchAssets } from '../api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +11,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -34,24 +34,15 @@ const Predictive = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
+  // Load default data on mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const assetsRes = await getAssets();
-        setAssets(assetsRes.data);
-        if (assetsRes.data.length > 0) {
-          const firstTicker = assetsRes.data[0].ticker || 'AAPL';
-          setSelectedTicker(firstTicker);
-          setSearchQuery(firstTicker);
-          await fetchAllData(firstTicker);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    const loadDefault = async () => {
+      // Default to AAPL
+      setSearchQuery('AAPL');
+      await fetchAllData('AAPL');
+      setLoading(false);
     };
-    loadData();
+    loadDefault();
   }, []);
 
   const fetchAllData = async (ticker) => {
@@ -87,7 +78,6 @@ const Predictive = () => {
   };
 
   const handleSelect = (ticker) => {
-    setSelectedTicker(ticker);
     setSearchQuery(ticker);
     setSearchResults([]);
     fetchAllData(ticker);
@@ -100,7 +90,7 @@ const Predictive = () => {
 
   if (loading) return <div className="container">Loading predictive insights...</div>;
 
-  // Build chart data only if forecast exists and has historical prices
+  // Build chart data
   const hasHistoricalData = forecast?.historical?.prices && forecast.historical.prices.length > 0;
   const hasForecastData = forecast?.forecast?.prices && forecast.forecast.prices.length > 0;
 
@@ -146,6 +136,12 @@ const Predictive = () => {
   const combinedChartData = {
     labels: chartLabels,
     datasets: chartDatasets,
+  };
+
+  const getSentimentEmoji = (sentiment) => {
+    if (sentiment === 'positive') return '🟢';
+    if (sentiment === 'negative') return '🔴';
+    return '🟡';
   };
 
   return (
@@ -269,13 +265,79 @@ const Predictive = () => {
         )}
 
         {activeTab === 'sentiment' && sentiment && (
-          // ... keep existing sentiment code (same as before)
-          <div>Sentiment tab</div>
+          <div className="sentiment-section">
+            <div className="sentiment-summary">
+              <div className="sentiment-score">
+                <span className="sentiment-emoji">{getSentimentEmoji(sentiment.sentiment)}</span>
+                <span className="sentiment-label">{sentiment.sentiment?.toUpperCase()}</span>
+                <span className="sentiment-value">Score: {sentiment.score}</span>
+              </div>
+              <p className="sentiment-summary-text">{sentiment.summary}</p>
+            </div>
+
+            <div className="sentiment-articles">
+              <h4>📰 Top News Headlines</h4>
+              {sentiment.articles?.length > 0 ? (
+                sentiment.articles.map((article, idx) => (
+                  <div key={idx} className="sentiment-article">
+                    <a href={article.url} target="_blank" rel="noopener noreferrer">
+                      <span className="article-bullet">▸</span> {article.title}
+                    </a>
+                    <span className="article-source">{article.source}</span>
+                  </div>
+                ))
+              ) : (
+                <p>No news articles available</p>
+              )}
+            </div>
+          </div>
         )}
 
         {activeTab === 'risk' && riskProfile && (
-          // ... keep existing risk profile code (same as before)
-          <div>Risk tab</div>
+          <div className="risk-section">
+            <div className="risk-profile-card">
+              <h3>🛡️ Your Risk Profile</h3>
+              <div className="risk-tolerance">
+                <span className="risk-label">Risk Tolerance:</span>
+                <span className={`risk-value ${riskProfile.riskTolerance}`}>
+                  {riskProfile.riskTolerance?.toUpperCase()}
+                </span>
+              </div>
+              <p className="risk-message">{riskProfile.message}</p>
+            </div>
+
+            <div className="allocation-card">
+              <h4>📊 Recommended Allocation</h4>
+              <div className="allocation-bars">
+                {['stocks', 'bonds', 'crypto', 'cash'].map((key) => {
+                  const value = riskProfile.recommendedAllocation?.[key] || 0;
+                  return (
+                    <div className="allocation-item" key={key}>
+                      <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                      <div className="allocation-bar">
+                        <div className={`allocation-fill ${key}`} style={{ width: `${value}%` }}>
+                          {value}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="risk-advice">
+              <h4>💡 Investment Advice</h4>
+              {riskProfile.riskTolerance === 'aggressive' && (
+                <p>You have an aggressive risk profile. Consider growth stocks, tech sectors, and emerging markets. Be prepared for higher volatility.</p>
+              )}
+              {riskProfile.riskTolerance === 'conservative' && (
+                <p>You have a conservative risk profile. Focus on bonds, dividend stocks, and stable blue-chip companies. Capital preservation is key.</p>
+              )}
+              {riskProfile.riskTolerance === 'medium' && (
+                <p>You have a balanced risk profile. A mix of growth stocks, bonds, and some alternative assets is recommended. Diversify across sectors.</p>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>
