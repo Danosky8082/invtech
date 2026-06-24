@@ -3,16 +3,13 @@ const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Try to load yahoo-finance2 with fallback
 let yahooFinance;
 try {
   yahooFinance = require('yahoo-finance2');
 } catch (e) {
-  console.warn('Yahoo Finance module not available, using mock fallback.');
   yahooFinance = null;
 }
 
-// ==================== MOCK ASSET LIST (FALLBACK) ====================
 const MOCK_ASSETS = [
   { ticker: 'AAPL', name: 'Apple Inc.', type: 'stock' },
   { ticker: 'MSFT', name: 'Microsoft Corp', type: 'stock' },
@@ -31,100 +28,51 @@ const MOCK_ASSETS = [
   { ticker: 'ETH', name: 'Ethereum', type: 'crypto' },
 ];
 
-// GET /assets – list DB assets
 router.get('/', auth, async (req, res) => {
   try {
-    const assets = await prisma.asset.findMany({
-      select: { id: true, name: true, ticker: true, type: true, expectedReturn: true, riskLevel: true },
-    });
+    const assets = await prisma.asset.findMany({ select: { id: true, name: true, ticker: true, type: true, expectedReturn: true, riskLevel: true } });
     res.json(assets);
   } catch (err) {
-    console.error('Error fetching assets:', err.message);
     res.status(500).json({ error: 'Failed to fetch assets' });
   }
 });
 
-// GET /assets/search?query=...
 router.get('/search', auth, async (req, res) => {
   const { query } = req.query;
-  console.log('[Search] Query:', query);
+  if (!query || query.length < 2) return res.json([]);
 
-  if (!query || query.length < 2) {
-    console.log('[Search] Query too short');
-    return res.json([]);
-  }
-
-  // Helper to merge DB data
   const mergeWithDB = async (results) => {
     if (!results || results.length === 0) return [];
     const tickers = results.map(a => a.ticker);
-    const dbAssets = await prisma.asset.findMany({
-      where: { ticker: { in: tickers } },
-      select: { id: true, ticker: true, name: true, type: true, expectedReturn: true, riskLevel: true },
-    });
+    const dbAssets = await prisma.asset.findMany({ where: { ticker: { in: tickers } }, select: { id: true, ticker: true, name: true, type: true, expectedReturn: true, riskLevel: true } });
     const dbMap = Object.fromEntries(dbAssets.map((a) => [a.ticker, a]));
     return results.map((a) => {
       const db = dbMap[a.ticker];
-      if (db) {
-        return {
-          ...a,
-          id: db.id,
-          name: db.name,
-          type: db.type,
-          expectedReturn: db.expectedReturn,
-          riskLevel: db.riskLevel,
-          inDatabase: true,
-        };
-      }
-      return {
-        ...a,
-        id: null,
-        expectedReturn: 0.10,
-        riskLevel: 'medium',
-        inDatabase: false,
-      };
+      if (db) return { ...a, id: db.id, name: db.name, type: db.type, expectedReturn: db.expectedReturn, riskLevel: db.riskLevel, inDatabase: true };
+      return { ...a, id: null, expectedReturn: 0.10, riskLevel: 'medium', inDatabase: false };
     });
   };
 
-  // 1) Try Yahoo Finance
+  // Try Yahoo first
   let yahooResults = null;
   if (yahooFinance && typeof yahooFinance.search === 'function') {
     try {
       const searchResults = await yahooFinance.search(query);
       const quotes = searchResults.quotes || [];
-      const filtered = quotes.filter(
-        (q) => q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND'
-      );
+      const filtered = quotes.filter(q => q.quoteType === 'EQUITY' || q.quoteType === 'ETF' || q.quoteType === 'MUTUALFUND');
       if (filtered.length > 0) {
-        const mapped = filtered.slice(0, 10).map((q) => ({
-          ticker: q.symbol,
-          name: q.longName || q.shortName || q.symbol,
-          type: (q.quoteType || 'stock').toLowerCase(),
-          exchange: q.exchange,
-          inDatabase: false,
-        }));
+        const mapped = filtered.slice(0, 10).map(q => ({ ticker: q.symbol, name: q.longName || q.shortName || q.symbol, type: (q.quoteType || 'stock').toLowerCase() }));
         yahooResults = await mergeWithDB(mapped);
       }
-    } catch (err) {
-      console.error('[Search] Yahoo search error:', err.message);
-    }
+    } catch (err) { console.error('Yahoo search error:', err.message); }
   }
 
-  // If Yahoo returned results, use them
-  if (yahooResults && yahooResults.length > 0) {
-    console.log('[Search] Returning Yahoo results:', yahooResults.length);
-    return res.json(yahooResults);
-  }
+  if (yahooResults && yahooResults.length > 0) return res.json(yahooResults);
 
-  // 2) Fallback to mock list
-  console.log('[Search] Using mock fallback for:', query);
+  // Fallback to mock
   const lowerQuery = query.toLowerCase();
-  const filteredMock = MOCK_ASSETS.filter(a =>
-    a.ticker.toLowerCase().includes(lowerQuery) ||
-    a.name.toLowerCase().includes(lowerQuery)
-  );
+  const filteredMock = MOCK_ASSETS.filter(a => a.ticker.toLowerCase().includes(lowerQuery) || a.name.toLowerCase().includes(lowerQuery));
   const mockResults = await mergeWithDB(filteredMock);
-  console.log('[Search] Returning mock results:', mockResults.length);
   res.json(mockResults);
 });
 
