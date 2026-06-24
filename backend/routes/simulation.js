@@ -231,8 +231,6 @@ router.post('/simulate', auth, async (req, res) => {
         expectedProfit: profitUSD,
         originalAmount: amountInvested,
         originalCurrency: currency,
-        tickerAtSimulation: ticker || assetTicker, // save the ticker used
-        // priceAtSimulation: livePrice, // optionally store live price
       },
     });
 
