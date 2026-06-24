@@ -224,13 +224,13 @@ router.post('/simulate', auth, async (req, res) => {
 
     // Step 6: Store simulation in database (always in USD)
     await prisma.userSimulation.create({
-      data: {
-        userId,
-        assetId: asset.id,
-        amountInvested: usdAmount,
-        expectedProfit: profitUSD,
-        originalAmount: amountInvested,
-        originalCurrency: currency,
+  data: {
+    userId,
+    assetId,
+    amountInvested: usdAmount,
+    expectedProfit: profitUSD,
+    originalAmount: amountInvested,
+    originalCurrency: currency,
       },
     });
 
