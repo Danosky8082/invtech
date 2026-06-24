@@ -147,43 +147,74 @@ router.get('/assets', auth, async (req, res) => {
 
 // ==================== POST SIMULATE ====================
 router.post('/simulate', auth, async (req, res) => {
-  const { assetId, amountInvested, currency = 'USD' } = req.body;
+  const { assetId, amountInvested, currency = 'USD', ticker } = req.body;
   const userId = req.user.id;
 
-  if (!assetId || !amountInvested || amountInvested <= 0) {
-    return res.status(400).json({ msg: 'Invalid asset or amount' });
+  if (!amountInvested || amountInvested <= 0) {
+    return res.status(400).json({ msg: 'Invalid amount' });
+  }
+
+  // Validate that either assetId or ticker is provided
+  if (!assetId && !ticker) {
+    return res.status(400).json({ msg: 'Either assetId or ticker must be provided' });
   }
 
   try {
-    const asset = await prisma.asset.findUnique({ where: { id: assetId } });
-    if (!asset) return res.status(404).json({ msg: 'Asset not found' });
+    // 1. Find or create the asset
+    let asset;
+    if (assetId) {
+      asset = await prisma.asset.findUnique({ where: { id: assetId } });
+    } else if (ticker) {
+      // Try to find by ticker in DB
+      asset = await prisma.asset.findUnique({ where: { ticker } });
+      if (!asset) {
+        // Create a new asset record with default values
+        asset = await prisma.asset.create({
+          data: {
+            name: ticker, // placeholder name
+            ticker,
+            type: 'stock',
+            expectedReturn: 0.10,
+            riskLevel: 'medium',
+          },
+        });
+        console.log(`Created new asset for ticker: ${ticker}`);
+      }
+    }
 
-    // Step 1: Convert amount to USD (internal) using fallback
+    if (!asset) {
+      return res.status(404).json({ msg: 'Asset not found' });
+    }
+
+    // Use the asset's ticker for any further operations
+    const assetTicker = asset.ticker;
+
+    // Step 2: Convert amount to USD (internal) using fallback
     let usdAmount = amountInvested;
     if (currency !== 'USD') {
       usdAmount = await convertWithFallback(currency, 'USD', amountInvested);
     }
 
-    // Step 2: Calculate profit in USD
+    // Step 3: Calculate profit in USD
     const profitUSD = usdAmount * asset.expectedReturn;
     const totalReturnUSD = usdAmount + profitUSD;
 
-    // Step 3: Fetch live price (if available) before storing
+    // Step 4: Fetch live price (if available)
     let livePrice = null;
     let livePriceInUserCurrency = null;
-    if (asset.ticker) {
+    if (assetTicker) {
       try {
-        const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${asset.ticker}`);
+        const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${assetTicker}`);
         livePrice = stockRes.data.price;
         if (currency !== 'USD' && livePrice) {
           livePriceInUserCurrency = await convertWithFallback('USD', currency, livePrice);
         } else {
           livePriceInUserCurrency = livePrice;
         }
-      } catch (err) { /* silent */ }
+      } catch (err) { /* silent – continue without live price */ }
     }
 
-    // Step 4: Convert results back to user's currency using fallback
+    // Step 5: Convert results back to user's currency using fallback
     let profitDisplay = profitUSD;
     let totalDisplay = totalReturnUSD;
     if (currency !== 'USD') {
@@ -191,19 +222,21 @@ router.post('/simulate', auth, async (req, res) => {
       totalDisplay = await convertWithFallback('USD', currency, totalReturnUSD);
     }
 
-    // Step 5: Store simulation in database (always in USD)
+    // Step 6: Store simulation in database (always in USD)
     await prisma.userSimulation.create({
-  data: {
-    userId,
-    assetId,
-    amountInvested: usdAmount,
-    expectedProfit: profitUSD,
-    originalAmount: amountInvested,
-    originalCurrency: currency,
-  },
-});
+      data: {
+        userId,
+        assetId: asset.id,
+        amountInvested: usdAmount,
+        expectedProfit: profitUSD,
+        originalAmount: amountInvested,
+        originalCurrency: currency,
+        tickerAtSimulation: ticker || assetTicker, // save the ticker used
+        // priceAtSimulation: livePrice, // optionally store live price
+      },
+    });
 
-    // Step 6: Compute projections
+    // Step 7: Compute projections
     let exchangeRateFromUSD = 1;
     if (currency !== 'USD') {
       try {
@@ -221,11 +254,11 @@ router.post('/simulate', auth, async (req, res) => {
       exchangeRateFromUSD
     );
 
-    // Step 7: Currency symbol for display
+    // Step 8: Currency symbol for display
     const currencySymbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
     const symbol = currencySymbols[currency] || '$';
 
-    // Step 8: Generate advice
+    // Step 9: Generate advice
     const advice = generateAdvice(
       asset,
       amountInvested,

@@ -4,6 +4,7 @@ import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
 import { getAssets, getHistory, getExchangeRate, api } from '../api';
 import AssetSelector from './AssetSelector';
+import AsyncAssetSelector from './AsyncAssetSelector';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
+  const [selectedAsset, setSelectedAsset] = useState(null);
 
   // Helper: fetch with timeout (5 seconds)
   const fetchWithTimeout = (promise, timeoutMs = 5000) => {
@@ -212,12 +214,16 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
           </div>
         )}
 
-        <div className="dashboard-grid">
-          <div className="simulator-card">
-            <h2>📈 Try an investment</h2>
-            <AssetSelector onSelect={setSelectedAsset} value={selectedAsset} placeholder="Search for an asset..." />
-            {selectedAsset && <Simulator asset={selectedAsset} />}
-          </div>
+       <div className="dashboard-grid">
+  <div className="simulator-card">
+    <h2>📈 Try an investment</h2>
+    <AsyncAssetSelector
+      onSelect={setSelectedAsset}
+      value={selectedAsset}
+      placeholder="Search for an asset to simulate..."
+    />
+    {selectedAsset && <Simulator asset={selectedAsset} />}
+  </div>
 
           <div className="history-card">
             <h2>📜 Your past simulations</h2>

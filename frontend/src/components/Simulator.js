@@ -8,21 +8,23 @@ const Simulator = ({ asset }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSimulate = async () => {
-    if (!amount || amount <= 0) return alert('Enter a valid amount');
-    setLoading(true);
-    try {
-      const res = await simulateInvestment({
-        assetId: asset.id,
-        amountInvested: parseFloat(amount),
-        currency: currency
-      });
-      setResult(res.data);
-    } catch (err) {
-      alert(err.response?.data?.msg || 'Simulation failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!amount || amount <= 0) return alert('Enter a valid amount');
+  setLoading(true);
+  try {
+    const res = await simulateInvestment({
+      // If the asset has an id (from DB), send it; otherwise send the ticker
+      assetId: asset.id || undefined,
+      ticker: asset.ticker, // always send ticker
+      amountInvested: parseFloat(amount),
+      currency: currency
+    });
+    setResult(res.data);
+  } catch (err) {
+    alert(err.response?.data?.msg || 'Simulation failed');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>

@@ -45,8 +45,11 @@ model UserSimulation {
   originalAmount  Float    @map("original_amount")
   originalCurrency String  @map("original_currency") @default("USD")
 
-  // ✅ NEW: Price at simulation time (for real-time portfolio tracking)
+  // ✅ NEW: Price at simulation time (for real‑time portfolio tracking)
   priceAtSimulation Float? @map("price_at_simulation")
+
+  // ✅ NEW: Ticker used at simulation (for external assets not in DB)
+  tickerAtSimulation String? @map("ticker_at_simulation")
 
   user   User   @relation(fields: [userId], references: [id])
   asset  Asset  @relation(fields: [assetId], references: [id])

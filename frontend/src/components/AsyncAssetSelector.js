@@ -3,7 +3,6 @@ import AsyncSelect from 'react-select/async';
 import { searchAssets } from '../api';
 
 const AsyncAssetSelector = ({ onSelect, value, placeholder = 'Search for any asset...' }) => {
-  // Load options from backend search endpoint
   const loadOptions = async (inputValue) => {
     if (inputValue.length < 2) return [];
     try {
@@ -19,12 +18,10 @@ const AsyncAssetSelector = ({ onSelect, value, placeholder = 'Search for any ass
     }
   };
 
-  // Handle selection
   const handleChange = (selected) => {
     onSelect(selected ? selected.asset : null);
   };
 
-  // Determine selected value
   const selectedValue = value
     ? {
         value: value.ticker,
@@ -40,7 +37,6 @@ const AsyncAssetSelector = ({ onSelect, value, placeholder = 'Search for any ass
       value={selectedValue}
       placeholder={placeholder}
       isClearable
-      defaultOptions={false}
       cacheOptions
       className="asset-selector-react"
       classNamePrefix="asset-select"
