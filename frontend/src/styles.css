@@ -2185,54 +2185,5 @@ a {
                                 .dark-mode .asset-selector-react .asset-select__single-value {
                                     color: var(--text-primary);
                                 }
-                                .asset-search {
-  position: relative;
-  margin: 1.5rem 0;
-}
-
-.asset-search-input {
-  width: 100%;
-  padding: 12px 20px;
-  border-radius: 40px;
-  border: 2px solid #e2e8f0;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.asset-search-input:focus {
-  outline: none;
-  border-color: #1e3c72;
-  box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
-}
-
-.search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  list-style: none;
-  padding: 0;
-  margin: 4px 0 0;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 999;
-}
-
-.search-results li {
-  padding: 12px 20px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f4f9;
-  transition: background 0.15s;
-}
-
-.search-results li:hover {
-  background: #f0f4f9;
-}
-
-.search-results li:last-child {
-  border-bottom: none;
-}
+                                
 }
