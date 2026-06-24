@@ -25,8 +25,6 @@ ChartJS.register(
 );
 
 const Predictive = () => {
-  const [assets, setAssets] = useState([]);
-  const [selectedTicker, setSelectedTicker] = useState('AAPL');
   const [forecast, setForecast] = useState(null);
   const [sentiment, setSentiment] = useState(null);
   const [riskProfile, setRiskProfile] = useState(null);
