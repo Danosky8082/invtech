@@ -2277,3 +2277,8 @@ a {
     border-color: #f6d365;
     color: #1e3c72;
 }
+
+.history-card {
+    min-height: 200px;
+    /* so it's visible even if empty */
+}
