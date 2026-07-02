@@ -1905,409 +1905,357 @@ a {
     .projection-grid {
         flex-direction: column;
     }
-
-
-        /* Recommendations - visibility fix */
-        .recommendations-card {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            /* dark blue gradient */
-            border-radius: 20px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-            color: white;
-        }
-    
-        .recommendations-card h3 {
-            color: white;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-    
-        .rec-item {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(4px);
-            border-radius: 40px;
-            padding: 0.5rem 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin: 0.3rem 0.5rem 0.3rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-    
-        .rec-name {
-            color: white;
-            font-weight: 500;
-        }
-    
-        .rec-risk {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: white;
-        }
-    
-        .rec-risk[data-risk="low"] {
-            background: #2e7d32;
-        }
-    
-        .rec-risk[data-risk="medium"] {
-            background: #ef6c00;
-        }
-    
-        .rec-risk[data-risk="high"] {
-            background: #c62828;
-        }
-    
-        .rec-item button {
-            background: #f6d365;
-            color: #1e3c72;
-            border: none;
-            padding: 0.3rem 1rem;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-    
-        .rec-item button:hover {
-            background: #ffb347;
-        }
-    
-        /* Dark mode support for recommendations */
-        .dark-mode .recommendations-card {
-            background: linear-gradient(135deg, #0f2b4f, #1a2744);
-        }
-    
-        .dark-mode .rec-item {
-            background: rgba(255, 255, 255, 0.08);
-        }
-    
-        .dark-mode .rec-name {
-            color: #e8edf5;
-        }
-    
-        .dark-mode .rec-item button {
-            background: #f6d365;
-            color: #0f2b4f;
-        }
-    
-        .dark-mode .rec-item button:hover {
-            background: #ffb347;
-        }
-
-
-                /* ---------- PORTFOLIO PAGE ---------- */
-                .portfolio-container {
-                    max-width: 1400px;
-                    margin: 0 auto;
-                    padding: 2rem;
-                }
-        
-                .portfolio-container h1 {
-                    font-size: 2.2rem;
-                    font-weight: 700;
-                    color: #0a1e3a;
-                    margin-bottom: 0.25rem;
-                }
-        
-                .portfolio-container>p {
-                    color: #4a5a6e;
-                    margin-bottom: 2rem;
-                    border-left: 4px solid #f6d365;
-                    padding-left: 1rem;
-                }
-        
-                .portfolio-summary {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                    gap: 1.5rem;
-                    margin-bottom: 2rem;
-                }
-        
-                .portfolio-summary .summary-card {
-                    background: white;
-                    padding: 1.5rem 1rem;
-                    border-radius: 20px;
-                    text-align: center;
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-                    border: 1px solid #f0f4f9;
-                }
-        
-                .portfolio-summary .summary-card h4 {
-                    color: #6b7b8e;
-                    font-size: 0.85rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 0.3rem;
-                }
-        
-                .portfolio-summary .summary-card .price {
-                    font-size: 1.8rem;
-                    font-weight: 700;
-                    color: #0a1e3a;
-                }
-        
-                .portfolio-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 2rem;
-                }
-        
-                .chart-card,
-                .holdings-card {
-                    background: white;
-                    border-radius: 24px;
-                    padding: 1.5rem;
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-                    border: 1px solid #f0f4f9;
-                }
-        
-                .chart-card h3,
-                .holdings-card h3 {
-                    margin-top: 0;
-                    color: #1e3c72;
-                    margin-bottom: 1rem;
-                }
-        
-                .holdings-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 0.95rem;
-                }
-        
-                .holdings-table th,
-                .holdings-table td {
-                    padding: 0.8rem 0.5rem;
-                    border-bottom: 1px solid #f0f4f9;
-                    text-align: left;
-                }
-        
-                .holdings-table th {
-                    font-weight: 600;
-                    color: #4a5a6e;
-                    background: #f8fafc;
-                }
-        
-                .holdings-table tr:hover td {
-                    background: #fafbfc;
-                }
-        
-                .holdings-table .ticker {
-                    font-size: 0.75rem;
-                    color: #8a9aa8;
-                    background: #f0f4f9;
-                    padding: 0.1rem 0.5rem;
-                    border-radius: 20px;
-                }
-        
-                .positive {
-                    color: #2e7d32;
-                }
-        
-                @media (max-width: 768px) {
-                    .portfolio-grid {
-                        grid-template-columns: 1fr;
-                    }
-        
-                    .portfolio-summary {
-                        grid-template-columns: 1fr 1fr;
-                    }
-        
-                    .holdings-table {
-                        font-size: 0.8rem;
-                    }
-                }
-        
-                /* Dark mode support */
-                .dark-mode .portfolio-container h1 {
-                    color: var(--text-primary);
-                }
-        
-                .dark-mode .portfolio-container>p {
-                    color: var(--text-secondary);
-                }
-        
-                .dark-mode .portfolio-summary .summary-card,
-                .dark-mode .chart-card,
-                .dark-mode .holdings-card {
-                    background: var(--bg-card);
-                    border-color: var(--border-light);
-                }
-        
-                .dark-mode .portfolio-summary .summary-card .price {
-                    color: var(--text-primary);
-                }
-        
-                .dark-mode .holdings-table th {
-                    background: var(--bg-secondary);
-                    color: var(--text-secondary);
-                }
-        
-                .dark-mode .holdings-table td {
-                    color: var(--text-primary);
-                    border-color: var(--border-light);
-                }
-        
-                .dark-mode .holdings-table tr:hover td {
-                    background: var(--bg-secondary);
-                }
-        
-                .dark-mode .holdings-table .ticker {
-                    background: var(--bg-secondary);
-                    color: var(--text-secondary);
-                }
-
-                                .asset-selector-react {
-                                    width: 100%;
-                                    max-width: 400px;
-                                    margin: 0.5rem 0;
-                                }
-                
-                                .asset-select__menu {
-                                    z-index: 999 !important;
-                                }
-                
-                                /* Dark mode support */
-                                .dark-mode .asset-selector-react .asset-select__control {
-                                    background: var(--bg-secondary);
-                                    border-color: var(--border-light);
-                                    color: var(--text-primary);
-                                }
-                
-                                .dark-mode .asset-selector-react .asset-select__input {
-                                    color: var(--text-primary);
-                                }
-                
-                                .dark-mode .asset-selector-react .asset-select__single-value {
-                                    color: var(--text-primary);
-                                }
-                                                                .asset-search {
-                                                                    position: relative;
-                                                                    margin: 1.5rem 0;
-                                                                }
-                                
-                                                                .asset-search-input {
-                                                                    width: 100%;
-                                                                    padding: 12px 20px;
-                                                                    border-radius: 40px;
-                                                                    border: 2px solid #e2e8f0;
-                                                                    font-size: 1rem;
-                                                                    transition: border-color 0.2s;
-                                                                }
-                                
-                                                                .asset-search-input:focus {
-                                                                    outline: none;
-                                                                    border-color: #1e3c72;
-                                                                    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
-                                                                }
-                                
-                                                                .search-results {
-                                                                    position: absolute;
-                                                                    top: 100%;
-                                                                    left: 0;
-                                                                    right: 0;
-                                                                    background: white;
-                                                                    border-radius: 16px;
-                                                                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-                                                                    list-style: none;
-                                                                    padding: 0;
-                                                                    margin: 4px 0 0;
-                                                                    max-height: 300px;
-                                                                    overflow-y: auto;
-                                                                    z-index: 999;
-                                                                }
-                                
-                                                                .search-results li {
-                                                                    padding: 12px 20px;
-                                                                    cursor: pointer;
-                                                                    border-bottom: 1px solid #f0f4f9;
-                                                                    transition: background 0.15s;
-                                                                }
-                                
-                                                                .search-results li:hover {
-                                                                    background: #f0f4f9;
-                                                                }
-                                
-                                                                .search-results li:last-child {
-                                                                    border-bottom: none;
-                                                                }
-                                                                                                                                                                                                                                                                /* Asset Suggestions – Smaller, Horizontally Scrollable */
-                                                                                                                                                                                                                                                                .asset-suggestions {
-                                                                                                                                                                                                                                                                    margin: 1rem 0 0.5rem;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .asset-suggestions h4 {
-                                                                                                                                                                                                                                                                    font-size: 0.85rem;
-                                                                                                                                                                                                                                                                    margin-bottom: 0.3rem;
-                                                                                                                                                                                                                                                                    color: #4a5a6e;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .suggestion-chips {
-                                                                                                                                                                                                                                                                    display: flex;
-                                                                                                                                                                                                                                                                    flex-wrap: nowrap;
-                                                                                                                                                                                                                                                                    overflow-x: auto;
-                                                                                                                                                                                                                                                                    gap: 0.5rem;
-                                                                                                                                                                                                                                                                    padding: 0.2rem 0 0.6rem 0;
-                                                                                                                                                                                                                                                                    scrollbar-width: thin;
-                                                                                                                                                                                                                                                                    -webkit-overflow-scrolling: touch;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .suggestion-chip {
-                                                                                                                                                                                                                                                                    flex: 0 0 auto;
-                                                                                                                                                                                                                                                                    display: flex;
-                                                                                                                                                                                                                                                                    align-items: center;
-                                                                                                                                                                                                                                                                    gap: 0.25rem;
-                                                                                                                                                                                                                                                                    background: white;
-                                                                                                                                                                                                                                                                    border-radius: 40px;
-                                                                                                                                                                                                                                                                    padding: 0.15rem 0.5rem 0.15rem 0.7rem;
-                                                                                                                                                                                                                                                                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-                                                                                                                                                                                                                                                                    cursor: pointer;
-                                                                                                                                                                                                                                                                    transition: all 0.15s;
-                                                                                                                                                                                                                                                                    border: 1px solid #e2e8f0;
-                                                                                                                                                                                                                                                                    font-size: 0.75rem;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .suggestion-chip:hover {
-                                                                                                                                                                                                                                                                    transform: translateY(-1px);
-                                                                                                                                                                                                                                                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-name {
-                                                                                                                                                                                                                                                                    font-weight: 600;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-ticker {
-                                                                                                                                                                                                                                                                    color: #6b7b8e;
-                                                                                                                                                                                                                                                                    font-size: 0.65rem;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-risk {
-                                                                                                                                                                                                                                                                    font-size: 0.55rem;
-                                                                                                                                                                                                                                                                    padding: 0.05rem 0.35rem;
-                                                                                                                                                                                                                                                                    border-radius: 20px;
-                                                                                                                                                                                                                                                                    font-weight: 600;
-                                                                                                                                                                                                                                                                    text-transform: uppercase;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-risk.low {
-                                                                                                                                                                                                                                                                    background: #c8e6c9;
-                                                                                                                                                                                                                                                                    color: #2e7d32;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-risk.medium {
-                                                                                                                                                                                                                                                                    background: #ffe0b2;
-                                                                                                                                                                                                                                                                    color: #ef6c00;
-                                                                                                                                                                                                                                                                }
-                                                                                                                                
-                                                                                                                                                                                                                                                                .chip-risk.high {
-                                                                                                                                                                                                                                                                    background: #ffcdd2;
-                                                                                                                                                                                                                                                                    color: #c62828;
-                                                                                                                                                                                                                                                                }
 }
+
+/* ---------- RECOMMENDATIONS (FIXED VISIBILITY) ---------- */
+.recommendations-card {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.recommendations-card h3 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.rec-item {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(4px);
+    border-radius: 40px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.3rem 0.5rem 0.3rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.rec-name {
+    color: white;
+    font-weight: 500;
+}
+
+.rec-risk {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: white;
+}
+
+.rec-risk[data-risk="low"] {
+    background: #2e7d32;
+}
+
+.rec-risk[data-risk="medium"] {
+    background: #ef6c00;
+}
+
+.rec-risk[data-risk="high"] {
+    background: #c62828;
+}
+
+.rec-item button {
+    background: #f6d365;
+    color: #1e3c72;
+    border: none;
+    padding: 0.3rem 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.rec-item button:hover {
+    background: #ffb347;
+}
+
+.dark-mode .recommendations-card {
+    background: linear-gradient(135deg, #0f2b4f, #1a2744);
+}
+
+.dark-mode .rec-item {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .rec-name {
+    color: #e8edf5;
+}
+
+.dark-mode .rec-item button {
+    background: #f6d365;
+    color: #0f2b4f;
+}
+
+.dark-mode .rec-item button:hover {
+    background: #ffb347;
+}
+
+/* ---------- PORTFOLIO PAGE ---------- */
+.portfolio-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.portfolio-container h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #0a1e3a;
+    margin-bottom: 0.25rem;
+}
+
+.portfolio-container>p {
+    color: #4a5a6e;
+    margin-bottom: 2rem;
+    border-left: 4px solid #f6d365;
+    padding-left: 1rem;
+}
+
+.portfolio-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.portfolio-summary .summary-card {
+    background: white;
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f4f9;
+}
+
+.portfolio-summary .summary-card h4 {
+    color: #6b7b8e;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+
+.portfolio-summary .summary-card .price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0a1e3a;
+}
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.chart-card,
+.holdings-card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f4f9;
+}
+
+.chart-card h3,
+.holdings-card h3 {
+    margin-top: 0;
+    color: #1e3c72;
+    margin-bottom: 1rem;
+}
+
+.holdings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.holdings-table th,
+.holdings-table td {
+    padding: 0.8rem 0.5rem;
+    border-bottom: 1px solid #f0f4f9;
+    text-align: left;
+}
+
+.holdings-table th {
+    font-weight: 600;
+    color: #4a5a6e;
+    background: #f8fafc;
+}
+
+.holdings-table tr:hover td {
+    background: #fafbfc;
+}
+
+.holdings-table .ticker {
+    font-size: 0.75rem;
+    color: #8a9aa8;
+    background: #f0f4f9;
+    padding: 0.1rem 0.5rem;
+    border-radius: 20px;
+}
+
+.positive {
+    color: #2e7d32;
+}
+
+@media (max-width: 768px) {
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .portfolio-summary {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .holdings-table {
+        font-size: 0.8rem;
+    }
+}
+
+.dark-mode .portfolio-container h1 {
+    color: var(--text-primary);
+}
+
+.dark-mode .portfolio-container>p {
+    color: var(--text-secondary);
+}
+
+.dark-mode .portfolio-summary .summary-card,
+.dark-mode .chart-card,
+.dark-mode .holdings-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+.dark-mode .portfolio-summary .summary-card .price {
+    color: var(--text-primary);
+}
+
+.dark-mode .holdings-table th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.dark-mode .holdings-table td {
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+.dark-mode .holdings-table tr:hover td {
+    background: var(--bg-secondary);
+}
+
+.dark-mode .holdings-table .ticker {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+/* ---------- ASSET SEARCH (react-select) ---------- */
+.asset-selector-react {
+    width: 100%;
+    max-width: 400px;
+    margin: 0.5rem 0;
+}
+
+.asset-select__menu {
+    z-index: 999 !important;
+}
+
+.dark-mode .asset-selector-react .asset-select__control {
+    background: var(--bg-secondary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.dark-mode .asset-selector-react .asset-select__input {
+    color: var(--text-primary);
+}
+
+.dark-mode .asset-selector-react .asset-select__single-value {
+    color: var(--text-primary);
+}
+
+/* ---------- ASSET SUGGESTIONS (Small, Scrollable Chips) ---------- */
+.asset-suggestions {
+    margin: 1rem 0 0.5rem;
+}
+
+.asset-suggestions h4 {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    color: #4a5a6e;
+}
+
+.suggestion-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.2rem 0 0.6rem 0;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.suggestion-chip {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: white;
+    border-radius: 40px;
+    padding: 0.15rem 0.5rem 0.15rem 0.7rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+}
+
+.suggestion-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chip-name {
+    font-weight: 600;
+}
+
+.chip-ticker {
+    color: #6b7b8e;
+    font-size: 0.65rem;
+}
+
+.chip-risk {
+    font-size: 0.55rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.chip-risk.low {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.chip-risk.medium {
+    background: #ffe0b2;
+    color: #ef6c00;
+}
+
+.chip-risk.high {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+/* ---------- WATCHLIST TOGGLE BUTTON ---------- */
 .watchlist-toggle-btn {
     background: none;
     border: 1px solid #e2e8f0;
