@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Simulator from './Simulator';
 import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
-import { getAssets, getHistory, getExchangeRate, api } from '../api';
+import { getAssets, getHistory, getExchangeRate, api, getWatchlist, addToWatchlist, removeFromWatchlist } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import AssetSuggestions from './AssetSuggestions';
 
@@ -10,13 +10,14 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [assets, setAssets] = useState([]);
   const [history, setHistory] = useState([]);
-  const [selectedAsset, setSelectedAsset] = useState(null); // ✅ Only one declaration
+  const [selectedAsset, setSelectedAsset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSimulation, setSelectedSimulation] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
+  const [watchlist, setWatchlist] = useState([]);
 
   // Helper: fetch with timeout (5 seconds)
   const fetchWithTimeout = (promise, timeoutMs = 5000) => {
@@ -68,6 +69,7 @@ const Dashboard = () => {
 
         if (assetsResult.status === 'fulfilled' && Array.isArray(assetsResult.value.data)) {
           setAssets(assetsResult.value.data);
+          console.log('Assets loaded:', assetsResult.value.data);
         } else {
           setAssets([]);
         }
@@ -83,6 +85,16 @@ const Dashboard = () => {
         } else {
           console.error('Exchange rates API failed, using defaults');
           setExchangeRates({ USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.37, JPY: 147.5, CNY: 7.25, NGN: 1520 });
+        }
+
+        // ✅ Fetch watchlist after other data
+        try {
+          const watchlistRes = await fetchWithTimeout(getWatchlist());
+          if (watchlistRes.status === 'fulfilled' && Array.isArray(watchlistRes.value.data)) {
+            setWatchlist(watchlistRes.value.data);
+          }
+        } catch (err) {
+          console.warn('Could not fetch watchlist:', err);
         }
 
         if (historyResult.status === 'fulfilled' && assetsResult.status === 'fulfilled') {
@@ -133,6 +145,24 @@ const Dashboard = () => {
     } catch (err) {
       console.error(err);
       alert('Could not delete simulation');
+    }
+  };
+
+  // ✅ Toggle watchlist function
+  const toggleWatchlist = async (asset) => {
+    if (!asset) return;
+    const existing = watchlist.find(item => item.assetId === asset.id);
+    try {
+      if (existing) {
+        await removeFromWatchlist(existing.id);
+        setWatchlist(watchlist.filter(item => item.id !== existing.id));
+      } else {
+        const res = await addToWatchlist(asset.id);
+        setWatchlist([...watchlist, res.data]);
+      }
+    } catch (err) {
+      console.error('Watchlist toggle error:', err);
+      alert('Failed to update watchlist');
     }
   };
 
@@ -218,6 +248,17 @@ const Dashboard = () => {
               value={selectedAsset}
               placeholder="Search for an asset to simulate..."
             />
+
+            {/* ✅ Watchlist toggle button */}
+            {selectedAsset && (
+              <button
+                className={`watchlist-toggle-btn ${watchlist.find(item => item.assetId === selectedAsset.id) ? 'in-watchlist' : ''}`}
+                onClick={() => toggleWatchlist(selectedAsset)}
+              >
+                {watchlist.find(item => item.assetId === selectedAsset.id) ? '⭐ In Watchlist' : '☆ Add to Watchlist'}
+              </button>
+            )}
+
             {selectedAsset && <Simulator asset={selectedAsset} />}
           </div>
 

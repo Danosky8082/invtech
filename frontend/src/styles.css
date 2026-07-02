@@ -2235,126 +2235,97 @@ a {
                                                                 .search-results li:last-child {
                                                                     border-bottom: none;
                                                                 }
-                                                                                                                                .asset-suggestions {
-                                                                                                                                    margin: 1.5rem 0;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chips {
-                                                                                                                                    display: flex;
-                                                                                                                                    flex-wrap: wrap;
-                                                                                                                                    gap: 0.8rem;
-                                                                                                                                    margin-top: 0.5rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chip {
-                                                                                                                                    display: flex;
-                                                                                                                                    align-items: center;
-                                                                                                                                    gap: 0.4rem;
-                                                                                                                                    background: white;
-                                                                                                                                    border-radius: 40px;
-                                                                                                                                    padding: 0.4rem 0.8rem 0.4rem 1rem;
-                                                                                                                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                                                                                                                                    cursor: pointer;
-                                                                                                                                    transition: all 0.2s;
-                                                                                                                                    border: 1px solid #e2e8f0;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chip:hover {
-                                                                                                                                    transform: translateY(-2px);
-                                                                                                                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-name {
-                                                                                                                                    font-weight: 600;
-                                                                                                                                    font-size: 0.9rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-ticker {
-                                                                                                                                    color: #6b7b8e;
-                                                                                                                                    font-size: 0.8rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk {
-                                                                                                                                    font-size: 0.7rem;
-                                                                                                                                    padding: 0.1rem 0.5rem;
-                                                                                                                                    border-radius: 20px;
-                                                                                                                                    font-weight: 600;
-                                                                                                                                    text-transform: uppercase;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.low {
-                                                                                                                                    background: #c8e6c9;
-                                                                                                                                    color: #2e7d32;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.medium {
-                                                                                                                                    background: #ffe0b2;
-                                                                                                                                    color: #ef6c00;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.high {
-                                                                                                                                    background: #ffcdd2;
-                                                                                                                                    color: #c62828;
-                                                                                                                                }
-                                                                                                                                .asset-suggestions {
-                                                                                                                                    margin: 1.5rem 0;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chips {
-                                                                                                                                    display: flex;
-                                                                                                                                    flex-wrap: wrap;
-                                                                                                                                    gap: 0.8rem;
-                                                                                                                                    margin-top: 0.5rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chip {
-                                                                                                                                    display: flex;
-                                                                                                                                    align-items: center;
-                                                                                                                                    gap: 0.4rem;
-                                                                                                                                    background: white;
-                                                                                                                                    border-radius: 40px;
-                                                                                                                                    padding: 0.4rem 0.8rem 0.4rem 1rem;
-                                                                                                                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                                                                                                                                    cursor: pointer;
-                                                                                                                                    transition: all 0.2s;
-                                                                                                                                    border: 1px solid #e2e8f0;
-                                                                                                                                }
-                                                                
-                                                                                                                                .suggestion-chip:hover {
-                                                                                                                                    transform: translateY(-2px);
-                                                                                                                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-name {
-                                                                                                                                    font-weight: 600;
-                                                                                                                                    font-size: 0.9rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-ticker {
-                                                                                                                                    color: #6b7b8e;
-                                                                                                                                    font-size: 0.8rem;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk {
-                                                                                                                                    font-size: 0.7rem;
-                                                                                                                                    padding: 0.1rem 0.5rem;
-                                                                                                                                    border-radius: 20px;
-                                                                                                                                    font-weight: 600;
-                                                                                                                                    text-transform: uppercase;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.low {
-                                                                                                                                    background: #c8e6c9;
-                                                                                                                                    color: #2e7d32;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.medium {
-                                                                                                                                    background: #ffe0b2;
-                                                                                                                                    color: #ef6c00;
-                                                                                                                                }
-                                                                
-                                                                                                                                .chip-risk.high {
-                                                                                                                                    background: #ffcdd2;
-                                                                                                                                    color: #c62828;
-                                                                                                                                }
+                                                                                                                                                                                                                                                                /* Asset Suggestions – Smaller, Horizontally Scrollable */
+                                                                                                                                                                                                                                                                .asset-suggestions {
+                                                                                                                                                                                                                                                                    margin: 1rem 0 0.5rem;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .asset-suggestions h4 {
+                                                                                                                                                                                                                                                                    font-size: 0.85rem;
+                                                                                                                                                                                                                                                                    margin-bottom: 0.3rem;
+                                                                                                                                                                                                                                                                    color: #4a5a6e;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .suggestion-chips {
+                                                                                                                                                                                                                                                                    display: flex;
+                                                                                                                                                                                                                                                                    flex-wrap: nowrap;
+                                                                                                                                                                                                                                                                    overflow-x: auto;
+                                                                                                                                                                                                                                                                    gap: 0.5rem;
+                                                                                                                                                                                                                                                                    padding: 0.2rem 0 0.6rem 0;
+                                                                                                                                                                                                                                                                    scrollbar-width: thin;
+                                                                                                                                                                                                                                                                    -webkit-overflow-scrolling: touch;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .suggestion-chip {
+                                                                                                                                                                                                                                                                    flex: 0 0 auto;
+                                                                                                                                                                                                                                                                    display: flex;
+                                                                                                                                                                                                                                                                    align-items: center;
+                                                                                                                                                                                                                                                                    gap: 0.25rem;
+                                                                                                                                                                                                                                                                    background: white;
+                                                                                                                                                                                                                                                                    border-radius: 40px;
+                                                                                                                                                                                                                                                                    padding: 0.15rem 0.5rem 0.15rem 0.7rem;
+                                                                                                                                                                                                                                                                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+                                                                                                                                                                                                                                                                    cursor: pointer;
+                                                                                                                                                                                                                                                                    transition: all 0.15s;
+                                                                                                                                                                                                                                                                    border: 1px solid #e2e8f0;
+                                                                                                                                                                                                                                                                    font-size: 0.75rem;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .suggestion-chip:hover {
+                                                                                                                                                                                                                                                                    transform: translateY(-1px);
+                                                                                                                                                                                                                                                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-name {
+                                                                                                                                                                                                                                                                    font-weight: 600;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-ticker {
+                                                                                                                                                                                                                                                                    color: #6b7b8e;
+                                                                                                                                                                                                                                                                    font-size: 0.65rem;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-risk {
+                                                                                                                                                                                                                                                                    font-size: 0.55rem;
+                                                                                                                                                                                                                                                                    padding: 0.05rem 0.35rem;
+                                                                                                                                                                                                                                                                    border-radius: 20px;
+                                                                                                                                                                                                                                                                    font-weight: 600;
+                                                                                                                                                                                                                                                                    text-transform: uppercase;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-risk.low {
+                                                                                                                                                                                                                                                                    background: #c8e6c9;
+                                                                                                                                                                                                                                                                    color: #2e7d32;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-risk.medium {
+                                                                                                                                                                                                                                                                    background: #ffe0b2;
+                                                                                                                                                                                                                                                                    color: #ef6c00;
+                                                                                                                                                                                                                                                                }
+                                                                                                                                
+                                                                                                                                                                                                                                                                .chip-risk.high {
+                                                                                                                                                                                                                                                                    background: #ffcdd2;
+                                                                                                                                                                                                                                                                    color: #c62828;
+                                                                                                                                                                                                                                                                }
+}
+.watchlist-toggle-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    padding: 0.2rem 0.8rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    color: #4a5a6e;
+}
+
+.watchlist-toggle-btn:hover {
+    background: #f0f4f9;
+}
+
+.watchlist-toggle-btn.in-watchlist {
+    background: #fef9e6;
+    border-color: #f6d365;
+    color: #1e3c72;
 }
