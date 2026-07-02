@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Predictive.css';
-import { getAssets, getForecast, getSentiment, getRiskProfile } from '../api';
+import { getForecast, getSentiment, getRiskProfile, getAssets } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import {
   Chart as ChartJS,
@@ -27,8 +27,7 @@ ChartJS.register(
 );
 
 const Predictive = () => {
-  const [assets, setAssets] = useState([]);
-  const [selectedAsset, setSelectedAsset] = useState(null); // store the full asset object
+  const [selectedAsset, setSelectedAsset] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [sentiment, setSentiment] = useState(null);
   const [riskProfile, setRiskProfile] = useState(null);
@@ -36,7 +35,6 @@ const Predictive = () => {
   const [activeTab, setActiveTab] = useState('forecast');
   const [darkMode, setDarkMode] = useState(false);
 
-  // Helper to fetch all data for a given ticker
   const fetchAllData = async (ticker) => {
     try {
       const [forecastRes, sentimentRes, riskRes] = await Promise.all([
@@ -52,35 +50,33 @@ const Predictive = () => {
     }
   };
 
-  // Load DB assets and set initial default
   useEffect(() => {
-    const loadData = async () => {
+    const loadDefaultAsset = async () => {
       try {
+        // Fetch DB assets to get a default ticker (if any)
         const assetsRes = await getAssets();
-        setAssets(assetsRes.data);
-        if (assetsRes.data.length > 0) {
-          // Use the first asset as default
-          const firstAsset = assetsRes.data[0];
-          setSelectedAsset(firstAsset);
-          await fetchAllData(firstAsset.ticker || 'AAPL');
+        if (assetsRes.data && assetsRes.data.length > 0) {
+          const defaultAsset = assetsRes.data[0];
+          setSelectedAsset(defaultAsset);
+          await fetchAllData(defaultAsset.ticker || 'AAPL');
         } else {
-          // Fallback to a default ticker (if no DB assets)
-          setSelectedAsset({ ticker: 'AAPL', name: 'Apple Inc.' });
+          // Fallback to a default asset
+          const fallback = { ticker: 'AAPL', name: 'Apple Inc.' };
+          setSelectedAsset(fallback);
           await fetchAllData('AAPL');
         }
       } catch (err) {
-        console.error('Error loading DB assets:', err);
-        // Fallback
-        setSelectedAsset({ ticker: 'AAPL', name: 'Apple Inc.' });
+        console.error('Error loading default asset:', err);
+        const fallback = { ticker: 'AAPL', name: 'Apple Inc.' };
+        setSelectedAsset(fallback);
         await fetchAllData('AAPL');
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+    loadDefaultAsset();
   }, []);
 
-  // When user selects an asset from the dropdown
   const handleAssetSelect = (asset) => {
     if (asset && asset.ticker) {
       setSelectedAsset(asset);
@@ -95,7 +91,6 @@ const Predictive = () => {
     document.body.classList.toggle('dark-mode', !darkMode);
   };
 
-  // Combined chart data (historical + forecast)
   const combinedChartData = {
     labels: [
       ...(forecast?.historical?.dates?.slice(-10)?.map(d => d.slice(5)) || []),
@@ -144,7 +139,6 @@ const Predictive = () => {
 
   return (
     <div className="predictive-container">
-      {/* Dark Mode Toggle Button */}
       <button className="theme-toggle" onClick={toggleDarkMode}>
         {darkMode ? '☀️ Light' : '🌙 Dark'}
       </button>
@@ -152,7 +146,6 @@ const Predictive = () => {
       <h1>📊 Market Intelligence</h1>
       <p>Real-time predictive insights, sentiment analysis, and personalized risk profiles.</p>
 
-      {/* Display selected asset name */}
       {selectedAsset && (
         <div className="selected-asset-display">
           <h2>{selectedAsset.name} ({selectedAsset.ticker})</h2>
@@ -161,14 +154,12 @@ const Predictive = () => {
         </div>
       )}
 
-      {/* Dynamic Asset Selector */}
       <AsyncAssetSelector
         onSelect={handleAssetSelect}
         value={selectedAsset}
         placeholder="Search for any asset..."
       />
 
-      {/* Tabs */}
       <div className="predictive-tabs">
         <button 
           className={activeTab === 'forecast' ? 'tab-active' : 'tab'}
@@ -190,7 +181,6 @@ const Predictive = () => {
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'forecast' && forecast && (
           <div className="forecast-section">
