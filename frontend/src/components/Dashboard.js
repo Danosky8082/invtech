@@ -10,15 +10,13 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [assets, setAssets] = useState([]);
   const [history, setHistory] = useState([]);
-  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [selectedAsset, setSelectedAsset] = useState(null); // ✅ Only one declaration
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSimulation, setSelectedSimulation] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
-  
-  
 
   // Helper: fetch with timeout (5 seconds)
   const fetchWithTimeout = (promise, timeoutMs = 5000) => {
@@ -39,7 +37,6 @@ const Dashboard = () => {
     if (!storedUser) {
       storedUser = localStorage.getItem('user');
       console.log('[Dashboard] localStorage user:', storedUser);
-      // If found in localStorage, copy to sessionStorage for consistency
       if (storedUser) {
         sessionStorage.setItem('user', storedUser);
         const token = localStorage.getItem('token');
@@ -70,16 +67,16 @@ const Dashboard = () => {
         const [assetsResult, historyResult, ratesResult] = results;
 
         if (assetsResult.status === 'fulfilled' && Array.isArray(assetsResult.value.data)) {
-  setAssets(assetsResult.value.data);
-} else {
-  setAssets([]);
-}
+          setAssets(assetsResult.value.data);
+        } else {
+          setAssets([]);
+        }
 
-if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.data)) {
-  setHistory(historyResult.value.data);
-} else {
-  setHistory([]);
-}
+        if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.data)) {
+          setHistory(historyResult.value.data);
+        } else {
+          setHistory([]);
+        }
 
         if (ratesResult.status === 'fulfilled' && ratesResult.value.data?.rates) {
           setExchangeRates(ratesResult.value.data.rates);
@@ -141,7 +138,7 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
 
   const handleLogout = () => {
     sessionStorage.clear();
-    localStorage.clear(); // also clear localStorage for safety
+    localStorage.clear();
     window.location.href = '/';
   };
 
@@ -165,7 +162,6 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
   const symbols = { USD: '$', NGN: '₦', EUR: '€', GBP: '£', CAD: 'C$', JPY: '¥', CNY: '¥' };
   const symbol = symbols[displayCurrency] || '$';
 
-  // Determine display name
   const displayName = user?.username || 'Investor';
   console.log('[Dashboard] Display name:', displayName, 'User object:', user);
 
@@ -194,9 +190,7 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
               <option value="JPY">Japanese Yen (¥)</option>
               <option value="CNY">Chinese Yuan (¥)</option>
             </select>
-            
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
-           
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
           </div>
         </div>
 
@@ -215,17 +209,17 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
           </div>
         )}
 
-       <div className="dashboard-grid">
-  <div className="simulator-card">
+        <div className="dashboard-grid">
+          <div className="simulator-card">
             <h2>📈 Try an investment</h2>
             <AssetSuggestions assets={assets} onSelect={(asset) => setSelectedAsset(asset)} />
-    <AsyncAssetSelector
-      onSelect={setSelectedAsset}
-      value={selectedAsset}
-      placeholder="Search for an asset to simulate..."
-    />
-    {selectedAsset && <Simulator asset={selectedAsset} />}
-  </div>
+            <AsyncAssetSelector
+              onSelect={setSelectedAsset}
+              value={selectedAsset}
+              placeholder="Search for an asset to simulate..."
+            />
+            {selectedAsset && <Simulator asset={selectedAsset} />}
+          </div>
 
           <div className="history-card">
             <h2>📜 Your past simulations</h2>
