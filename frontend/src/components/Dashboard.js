@@ -2,7 +2,15 @@ import React, { useEffect, useState } from 'react';
 import Simulator from './Simulator';
 import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
-import { getAssets, getHistory, getExchangeRate, api, getWatchlist, addToWatchlist, removeFromWatchlist } from '../api';
+import {
+  getAssets,
+  getHistory,
+  getExchangeRate,
+  api,
+  getWatchlist,
+  addToWatchlist,
+  removeFromWatchlist,
+} from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import AssetSuggestions from './AssetSuggestions';
 
@@ -33,7 +41,7 @@ const Dashboard = () => {
     // 1️⃣ Try to get user from sessionStorage first
     let storedUser = sessionStorage.getItem('user');
     console.log('[Dashboard] sessionStorage user:', storedUser);
-    
+
     // 2️⃣ If not found, try localStorage (for backward compatibility)
     if (!storedUser) {
       storedUser = localStorage.getItem('user');
@@ -44,7 +52,7 @@ const Dashboard = () => {
         if (token) sessionStorage.setItem('token', token);
       }
     }
-    
+
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -76,6 +84,7 @@ const Dashboard = () => {
 
         if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.data)) {
           setHistory(historyResult.value.data);
+          console.log('History loaded:', historyResult.value.data); // ✅ debug
         } else {
           setHistory([]);
         }
@@ -100,7 +109,7 @@ const Dashboard = () => {
         if (historyResult.status === 'fulfilled' && assetsResult.status === 'fulfilled') {
           generateRecommendations(historyResult.value.data, assetsResult.value.data);
         } else if (assetsResult.status === 'fulfilled') {
-          const lowRisk = assetsResult.value.data.filter(a => a.riskLevel === 'low').slice(0, 3);
+          const lowRisk = assetsResult.value.data.filter((a) => a.riskLevel === 'low').slice(0, 3);
           setRecommendations(lowRisk.length ? lowRisk : assetsResult.value.data.slice(0, 3));
         }
       } catch (err) {
@@ -116,19 +125,19 @@ const Dashboard = () => {
 
   const generateRecommendations = (userHistory, allAssets) => {
     if (!userHistory.length) {
-      setRecommendations(allAssets.filter(a => a.riskLevel === 'low').slice(0, 3));
+      setRecommendations(allAssets.filter((a) => a.riskLevel === 'low').slice(0, 3));
       return;
     }
     const riskCount = { low: 0, medium: 0, high: 0 };
-    userHistory.forEach(sim => {
+    userHistory.forEach((sim) => {
       if (sim.asset && sim.asset.riskLevel) riskCount[sim.asset.riskLevel]++;
     });
     const mostFrequentRisk = Object.keys(riskCount).reduce((a, b) =>
       riskCount[a] > riskCount[b] ? a : b
     );
-    const usedIds = new Set(userHistory.map(sim => sim.assetId));
+    const usedIds = new Set(userHistory.map((sim) => sim.assetId));
     const suggestions = allAssets
-      .filter(a => a.riskLevel === mostFrequentRisk && !usedIds.has(a.id))
+      .filter((a) => a.riskLevel === mostFrequentRisk && !usedIds.has(a.id))
       .slice(0, 3);
     setRecommendations(suggestions.length ? suggestions : allAssets.slice(0, 3));
   };
@@ -141,7 +150,7 @@ const Dashboard = () => {
   const deleteSimulation = async (id) => {
     try {
       await api.delete(`/simulation/history/${id}`);
-      setHistory(history.filter(sim => sim.id !== id));
+      setHistory(history.filter((sim) => sim.id !== id));
     } catch (err) {
       console.error(err);
       alert('Could not delete simulation');
@@ -151,11 +160,11 @@ const Dashboard = () => {
   // ✅ Toggle watchlist function
   const toggleWatchlist = async (asset) => {
     if (!asset) return;
-    const existing = watchlist.find(item => item.assetId === asset.id);
+    const existing = watchlist.find((item) => item.assetId === asset.id);
     try {
       if (existing) {
         await removeFromWatchlist(existing.id);
-        setWatchlist(watchlist.filter(item => item.id !== existing.id));
+        setWatchlist(watchlist.filter((item) => item.id !== existing.id));
       } else {
         const res = await addToWatchlist(asset.id);
         setWatchlist([...watchlist, res.data]);
@@ -228,10 +237,12 @@ const Dashboard = () => {
           <div className="recommendations-card">
             <h3>📌 Recommended for you</h3>
             <div className="recommendations-list">
-              {recommendations.map(asset => (
+              {recommendations.map((asset) => (
                 <div key={asset.id} className="rec-item">
                   <span className="rec-name">{asset.name}</span>
-                  <span className="rec-risk" data-risk={asset.riskLevel}>{asset.riskLevel}</span>
+                  <span className="rec-risk" data-risk={asset.riskLevel}>
+                    {asset.riskLevel}
+                  </span>
                   <button onClick={() => setSelectedAsset(asset)}>Simulate</button>
                 </div>
               ))}
@@ -252,10 +263,16 @@ const Dashboard = () => {
             {/* ✅ Watchlist toggle button */}
             {selectedAsset && (
               <button
-                className={`watchlist-toggle-btn ${watchlist.find(item => item.assetId === selectedAsset.id) ? 'in-watchlist' : ''}`}
+                className={`watchlist-toggle-btn ${
+                  watchlist.find((item) => item.assetId === selectedAsset.id)
+                    ? 'in-watchlist'
+                    : ''
+                }`}
                 onClick={() => toggleWatchlist(selectedAsset)}
               >
-                {watchlist.find(item => item.assetId === selectedAsset.id) ? '⭐ In Watchlist' : '☆ Add to Watchlist'}
+                {watchlist.find((item) => item.assetId === selectedAsset.id)
+                  ? '⭐ In Watchlist'
+                  : '☆ Add to Watchlist'}
               </button>
             )}
 
@@ -268,7 +285,7 @@ const Dashboard = () => {
               <p className="empty-history">No simulations yet. Try one on the left!</p>
             ) : (
               <ul className="history-list">
-                {history.map(sim => (
+                {history.map((sim) => (
                   <li
                     key={sim.id}
                     className="clickable-history"
@@ -277,10 +294,12 @@ const Dashboard = () => {
                     <div className="history-info">
                       <span className="history-asset">{sim.asset.name}</span>
                       <span className="history-amount">
-                        {symbol}{convertAmount(sim.amountInvested).toFixed(2)} {displayCurrency}
+                        {symbol}
+                        {convertAmount(sim.amountInvested).toFixed(2)} {displayCurrency}
                       </span>
                       <span className="history-profit">
-                        +{symbol}{convertAmount(sim.expectedProfit).toFixed(2)} {displayCurrency}
+                        +{symbol}
+                        {convertAmount(sim.expectedProfit).toFixed(2)} {displayCurrency}
                       </span>
                     </div>
                     <button

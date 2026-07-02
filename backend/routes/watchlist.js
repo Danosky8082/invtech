@@ -13,12 +13,12 @@ router.get('/', auth, async (req, res) => {
     });
     res.json(items);
   } catch (err) {
-    console.error(err);
+    console.error('Watchlist fetch error:', err.message);
     res.status(500).json({ error: 'Failed to fetch watchlist' });
   }
 });
 
-// POST /watchlist – add asset to watchlist
+// POST /watchlist – add asset
 router.post('/', auth, async (req, res) => {
   const { assetId } = req.body;
   if (!assetId) return res.status(400).json({ error: 'assetId required' });
@@ -35,12 +35,12 @@ router.post('/', auth, async (req, res) => {
     });
     res.status(201).json(entry);
   } catch (err) {
-    console.error(err);
+    console.error('Watchlist add error:', err.message);
     res.status(500).json({ error: 'Failed to add to watchlist' });
   }
 });
 
-// DELETE /watchlist/:id – remove asset from watchlist
+// DELETE /watchlist/:id – remove asset
 router.delete('/:id', auth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -52,7 +52,7 @@ router.delete('/:id', auth, async (req, res) => {
     await prisma.watchlist.delete({ where: { id: parseInt(id) } });
     res.json({ message: 'Removed from watchlist' });
   } catch (err) {
-    console.error(err);
+    console.error('Watchlist remove error:', err.message);
     res.status(500).json({ error: 'Failed to remove from watchlist' });
   }
 });
