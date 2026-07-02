@@ -2282,3 +2282,10 @@ a {
     min-height: 200px;
     /* so it's visible even if empty */
 }
+
+.history-card {
+    background: white;
+    /* already present */
+    min-height: 200px;
+    /* add this temporarily to see if it appears */
+}
