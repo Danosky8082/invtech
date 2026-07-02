@@ -16,6 +16,7 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at")
 
   simulations    UserSimulation[]
+  watchlists     Watchlist[]   // ✅ Relation to Watchlist
 
   @@map("users")
 }
@@ -23,12 +24,13 @@ model User {
 model Asset {
   id             Int     @id @default(autoincrement())
   name           String
-  type           String   // "stock" or "bond"
-  ticker         String?  @unique
-  expectedReturn Float    @map("expected_return")
-  riskLevel      String   @map("risk_level") // "low", "medium", "high"
+  type           String   // "stock", "bond", "etf", "crypto"
+  ticker         String? @unique
+  expectedReturn Float   @map("expected_return")
+  riskLevel      String  @map("risk_level") // "low", "medium", "high"
 
   simulations    UserSimulation[]
+  watchlists     Watchlist[]   // ✅ Relation to Watchlist
 
   @@map("assets")
 }
@@ -41,18 +43,31 @@ model UserSimulation {
   expectedProfit  Float    @map("expected_profit")
   simulatedAt     DateTime @default(now()) @map("simulated_at")
 
-  // ✅ Original currency fields (store what the user entered)
-  originalAmount  Float    @map("original_amount")
-  originalCurrency String  @map("original_currency") @default("USD")
+  // Original currency fields (store what the user entered)
+  originalAmount      Float   @map("original_amount")
+  originalCurrency    String  @map("original_currency") @default("USD")
 
-  // ✅ NEW: Price at simulation time (for real‑time portfolio tracking)
-  priceAtSimulation Float? @map("price_at_simulation")
+  // Price at simulation time (for real‑time portfolio tracking)
+  priceAtSimulation   Float?  @map("price_at_simulation")
 
-  // ✅ NEW: Ticker used at simulation (for external assets not in DB)
-  tickerAtSimulation String? @map("ticker_at_simulation")
+  // Ticker used at simulation (for external assets not in DB)
+  tickerAtSimulation  String? @map("ticker_at_simulation")
 
   user   User   @relation(fields: [userId], references: [id])
   asset  Asset  @relation(fields: [assetId], references: [id])
 
   @@map("user_simulations")
+}
+
+model Watchlist {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  assetId   Int      @map("asset_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  asset  Asset  @relation(fields: [assetId], references: [id])
+
+  @@unique([userId, assetId])
+  @@map("watchlists")
 }

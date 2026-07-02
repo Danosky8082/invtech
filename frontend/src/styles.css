@@ -2235,4 +2235,65 @@ a {
                                                                 .search-results li:last-child {
                                                                     border-bottom: none;
                                                                 }
+                                                                                                                                .asset-suggestions {
+                                                                                                                                    margin: 1.5rem 0;
+                                                                                                                                }
+                                                                
+                                                                                                                                .suggestion-chips {
+                                                                                                                                    display: flex;
+                                                                                                                                    flex-wrap: wrap;
+                                                                                                                                    gap: 0.8rem;
+                                                                                                                                    margin-top: 0.5rem;
+                                                                                                                                }
+                                                                
+                                                                                                                                .suggestion-chip {
+                                                                                                                                    display: flex;
+                                                                                                                                    align-items: center;
+                                                                                                                                    gap: 0.4rem;
+                                                                                                                                    background: white;
+                                                                                                                                    border-radius: 40px;
+                                                                                                                                    padding: 0.4rem 0.8rem 0.4rem 1rem;
+                                                                                                                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                                                                                                                                    cursor: pointer;
+                                                                                                                                    transition: all 0.2s;
+                                                                                                                                    border: 1px solid #e2e8f0;
+                                                                                                                                }
+                                                                
+                                                                                                                                .suggestion-chip:hover {
+                                                                                                                                    transform: translateY(-2px);
+                                                                                                                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-name {
+                                                                                                                                    font-weight: 600;
+                                                                                                                                    font-size: 0.9rem;
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-ticker {
+                                                                                                                                    color: #6b7b8e;
+                                                                                                                                    font-size: 0.8rem;
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-risk {
+                                                                                                                                    font-size: 0.7rem;
+                                                                                                                                    padding: 0.1rem 0.5rem;
+                                                                                                                                    border-radius: 20px;
+                                                                                                                                    font-weight: 600;
+                                                                                                                                    text-transform: uppercase;
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-risk.low {
+                                                                                                                                    background: #c8e6c9;
+                                                                                                                                    color: #2e7d32;
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-risk.medium {
+                                                                                                                                    background: #ffe0b2;
+                                                                                                                                    color: #ef6c00;
+                                                                                                                                }
+                                                                
+                                                                                                                                .chip-risk.high {
+                                                                                                                                    background: #ffcdd2;
+                                                                                                                                    color: #c62828;
+                                                                                                                                }
 }

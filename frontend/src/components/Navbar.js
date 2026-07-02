@@ -41,6 +41,7 @@ const Navbar = () => {
               <Link to="/dashboard" className="nav-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
                 <Link to="/predictive" className="nav-link" onClick={() => setMenuOpen(false)}>📊 Insights</Link>
                 <Link to="/portfolio" className="nav-link">📂 Portfolio</Link>
+                <Link to="/watchlist" className="nav-link">⭐ Watchlist</Link>
               <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
             </>
           )}

@@ -4,6 +4,7 @@ import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
 import { getAssets, getHistory, getExchangeRate, api } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
+import AssetSuggestions from './AssetSuggestions';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
+  const [selectedAsset, setSelectedAsset] = useState(null);
   
 
   // Helper: fetch with timeout (5 seconds)
@@ -215,7 +217,8 @@ if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.da
 
        <div className="dashboard-grid">
   <div className="simulator-card">
-    <h2>📈 Try an investment</h2>
+            <h2>📈 Try an investment</h2>
+            <AssetSuggestions assets={assets} onSelect={(asset) => setSelectedAsset(asset)} />
     <AsyncAssetSelector
       onSelect={setSelectedAsset}
       value={selectedAsset}

@@ -26,5 +26,8 @@ export const getSentiment = (country = 'us') => API.get(`/predictive/sentiment?c
 export const getRiskProfile = () => API.get('/predictive/risk-profile');
 export const getPortfolio = () => API.get('/portfolio');
 export const searchAssets = (query) => API.get(`/assets/search?query=${query}`);
+export const getWatchlist = () => API.get('/watchlist');
+export const addToWatchlist = (assetId) => API.post('/watchlist', { assetId });
+export const removeFromWatchlist = (watchlistId) => API.delete(`/watchlist/${watchlistId}`);
 
 export { API as api };
