@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api';
 
 const Settings = () => {
-  const [user, setUser] = useState(null);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -16,8 +15,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await API.get('/user/profile');
-        setUser(res.data);
+        const res = await API.get('/user/profile'); // ✅ correct endpoint
         setUsername(res.data.username);
         setEmail(res.data.email);
       } catch (err) {
@@ -28,13 +26,12 @@ const Settings = () => {
       }
     };
     fetchUser();
-  }, []);
+  }, [navigate]); // ✅ dependency added
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
       const res = await API.put('/user/profile', { username, email });
-      setUser(res.data);
       setMessage({ text: 'Profile updated successfully', type: 'success' });
       // Update sessionStorage user
       sessionStorage.setItem('user', JSON.stringify(res.data));
