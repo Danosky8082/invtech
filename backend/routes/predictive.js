@@ -3,8 +3,9 @@ const axios = require('axios');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
-const YahooFinance = require('yahoo-finance2');
-const yahooFinance = new YahooFinance();
+
+// ✅ Correct import for yahoo-finance2 (no constructor – we may not even need it here)
+const yahooFinance = require('yahoo-finance2');
 
 // ==================== MOCK DATA GENERATOR ====================
 function generateMockData(ticker) {
@@ -17,7 +18,6 @@ function generateMockData(ticker) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     dates.push(d.toISOString().split('T')[0]);
-    // Random walk with drift
     const drift = (Math.random() - 0.5) * 0.02;
     const noise = (Math.random() - 0.5) * 0.05;
     price = price * (1 + drift + noise);
@@ -53,7 +53,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
   const { days = 30, scenario = 'neutral' } = req.query;
 
   try {
-    // Generate mock data (realistic simulation)
     const { prices, dates } = generateMockData(ticker);
     const ma7 = calculateMovingAverage(prices, 7);
     const ma30 = calculateMovingAverage(prices, 30);
@@ -64,39 +63,31 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     const avgPrice = last10Prices.reduce((a, b) => a + b, 0) / last10Prices.length;
     const trend = (currentPrice - avgPrice) / avgPrice;
 
-    // ----- Adjust forecast based on scenario -----
-    // volatilityMultiplier: wider bands for pessimistic, narrower for optimistic
     let volatilityMultiplier = 1;
     if (scenario === 'optimistic') volatilityMultiplier = 0.5;
     else if (scenario === 'pessimistic') volatilityMultiplier = 1.5;
 
-    // ----- Compute forecast for the requested `days` horizon -----
+    const forecastDays = parseInt(days, 10) || 30;
     const forecastDates = [];
     const forecastPrices = [];
     const forecastUpper = [];
     const forecastLower = [];
 
-    // Convert days to integer
-    const forecastDays = parseInt(days, 10) || 30;
-
     for (let i = 1; i <= forecastDays; i++) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + i);
       forecastDates.push(futureDate.toISOString().split('T')[0]);
-
       const projectedPrice = currentPrice * (1 + (trend * (i / forecastDays)));
       forecastPrices.push(projectedPrice);
       forecastUpper.push(projectedPrice * (1 + volatility * volatilityMultiplier * 0.5));
       forecastLower.push(projectedPrice * (1 - volatility * volatilityMultiplier * 0.5));
     }
 
-    // ----- Compute additional metrics (annualized return, Sharpe ratio, max drawdown) -----
     const returns = prices.map((p, i) => (i > 0) ? (p - prices[i-1]) / prices[i-1] : 0);
     const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const annualizedReturn = avgReturn * 252; // 252 trading days in a year
+    const annualizedReturn = avgReturn * 252;
     const sharpeRatio = annualizedReturn / (volatility * Math.sqrt(252));
     
-    // Max drawdown
     let maxDrawdown = 0;
     let peak = prices[0];
     for (const p of prices) {
@@ -105,7 +96,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       if (drawdown > maxDrawdown) maxDrawdown = drawdown;
     }
 
-    // ----- Build response -----
     res.json({
       ticker,
       currentPrice,
@@ -129,7 +119,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
         signal: trend > 0.02 ? 'BUY' : trend < -0.02 ? 'SELL' : 'HOLD',
         confidence: (1 - volatility) > 0.5 ? 'High' : 'Medium',
       },
-      // 👇 NEW: metrics
       metrics: {
         annualizedReturn: (annualizedReturn * 100).toFixed(2),
         sharpeRatio: sharpeRatio.toFixed(2),
@@ -138,7 +127,6 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
-    // Fallback response
     res.json({
       ticker,
       currentPrice: 100.00,

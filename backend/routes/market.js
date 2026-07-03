@@ -2,19 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const router = express.Router();
-const YahooFinance = require('yahoo-finance2');
-const yahooFinance = new YahooFinance();
 
-// ✅ Try to load yahoo-finance2 with fallback
-let yahooFinance;
-try {
-  const module = require('yahoo-finance2');
-  // In version 3, it's a default export, but sometimes it's a named export.
-  yahooFinance = module.default || module;
-} catch (e) {
-  console.warn('Yahoo Finance module not available, using fallback.');
-  yahooFinance = null;
-}
+// ✅ Correct import for yahoo-finance2 v3 (no constructor, no .default)
+const yahooFinance = require('yahoo-finance2');
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
