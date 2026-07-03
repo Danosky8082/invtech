@@ -42,7 +42,6 @@ const Navbar = () => {
               <Link to="/predictive" className="nav-link" onClick={() => setMenuOpen(false)}>📊 Insights</Link>
               <Link to="/portfolio" className="nav-link" onClick={() => setMenuOpen(false)}>📂 Portfolio</Link>
               <Link to="/watchlist" className="nav-link" onClick={() => setMenuOpen(false)}>⭐ Watchlist</Link>
-              {/* ✅ NEW Settings link */}
               <Link to="/settings" className="nav-link" onClick={() => setMenuOpen(false)}>⚙️ Settings</Link>
               <button onClick={handleLogout} className="nav-logout-btn">Logout</button>
             </>
