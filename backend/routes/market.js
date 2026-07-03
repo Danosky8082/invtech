@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const router = express.Router();
+const yahooFinance = require('yahoo-finance2'); 
 
 // ✅ Try to load yahoo-finance2 with fallback
 let yahooFinance;

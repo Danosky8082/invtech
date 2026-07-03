@@ -1,32 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { getWatchlist, removeFromWatchlist } from '../api';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+// ✅ LocalStorage helpers (same as in Dashboard)
+const getLocalWatchlist = () => {
+  const stored = localStorage.getItem('watchlist');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const saveLocalWatchlist = (watchlist) => {
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+};
 
 const Watchlist = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWatchlist = async () => {
-      try {
-        const res = await getWatchlist();
-        setItems(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWatchlist();
+    // Load watchlist from localStorage
+    const watchlist = getLocalWatchlist();
+    setItems(watchlist);
+    setLoading(false);
   }, []);
 
-  const handleRemove = async (id) => {
-    try {
-      await removeFromWatchlist(id);
-      setItems(items.filter((item) => item.id !== id));
-    } catch (err) {
-      alert('Failed to remove');
-    }
+  const handleRemove = (assetId) => {
+    const newItems = items.filter((item) => item.assetId !== assetId);
+    setItems(newItems);
+    saveLocalWatchlist(newItems);
   };
 
   if (loading) return <div className="container">Loading watchlist...</div>;
@@ -35,16 +34,20 @@ const Watchlist = () => {
     <div className="watchlist-container">
       <h1>⭐ Your Watchlist</h1>
       {items.length === 0 ? (
-        <p>No assets in your watchlist. Go to <Link to="/dashboard">Dashboard</Link> to add some.</p>
+        <p>
+          No assets in your watchlist. Go to <Link to="/dashboard">Dashboard</Link> to add some.
+        </p>
       ) : (
         <div className="watchlist-grid">
           {items.map((item) => (
-            <div key={item.id} className="watchlist-item">
+            <div key={item.assetId} className="watchlist-item">
               <div>
                 <strong>{item.asset.name}</strong> ({item.asset.ticker})
-                <span className={`risk-${item.asset.riskLevel}`}>{item.asset.riskLevel}</span>
+                <span className={`risk-${item.asset.riskLevel}`}>
+                  {item.asset.riskLevel}
+                </span>
               </div>
-              <button onClick={() => handleRemove(item.id)}>Remove</button>
+              <button onClick={() => handleRemove(item.assetId)}>Remove</button>
             </div>
           ))}
         </div>

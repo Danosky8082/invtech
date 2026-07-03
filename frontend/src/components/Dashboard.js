@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import Simulator from './Simulator';
 import MarqueeExchange from './MarqueeExchange';
 import HistoryModal from './HistoryModal';
-import {
-  getAssets,
-  getHistory,
-  getExchangeRate,
-  api,
-  getWatchlist,
-  addToWatchlist,
-  removeFromWatchlist,
-} from '../api';
+import { getAssets, getHistory, getExchangeRate, api } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import AssetSuggestions from './AssetSuggestions';
+
+// ✅ LocalStorage watchlist helpers
+const getLocalWatchlist = () => {
+  const stored = localStorage.getItem('watchlist');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const saveLocalWatchlist = (watchlist) => {
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+};
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -25,7 +27,7 @@ const Dashboard = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState({});
-  const [watchlist, setWatchlist] = useState([]);
+  const [watchlist, setWatchlist] = useState(getLocalWatchlist());
 
   // Helper: fetch with timeout (5 seconds)
   const fetchWithTimeout = (promise, timeoutMs = 5000) => {
@@ -84,7 +86,7 @@ const Dashboard = () => {
 
         if (historyResult.status === 'fulfilled' && Array.isArray(historyResult.value.data)) {
           setHistory(historyResult.value.data);
-          console.log('History loaded:', historyResult.value.data); // ✅ debug
+          console.log('History loaded:', historyResult.value.data);
         } else {
           setHistory([]);
         }
@@ -96,15 +98,7 @@ const Dashboard = () => {
           setExchangeRates({ USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.37, JPY: 147.5, CNY: 7.25, NGN: 1520 });
         }
 
-        // ✅ Fetch watchlist after other data
-        try {
-          const watchlistRes = await fetchWithTimeout(getWatchlist());
-          if (watchlistRes.status === 'fulfilled' && Array.isArray(watchlistRes.value.data)) {
-            setWatchlist(watchlistRes.value.data);
-          }
-        } catch (err) {
-          console.warn('Could not fetch watchlist:', err);
-        }
+        // ❌ Removed watchlist fetch – now stored in localStorage
 
         if (historyResult.status === 'fulfilled' && assetsResult.status === 'fulfilled') {
           generateRecommendations(historyResult.value.data, assetsResult.value.data);
@@ -157,22 +151,18 @@ const Dashboard = () => {
     }
   };
 
-  // ✅ Toggle watchlist function
-  const toggleWatchlist = async (asset) => {
+  // ✅ Toggle watchlist using localStorage (no backend API)
+  const toggleWatchlist = (asset) => {
     if (!asset) return;
     const existing = watchlist.find((item) => item.assetId === asset.id);
-    try {
-      if (existing) {
-        await removeFromWatchlist(existing.id);
-        setWatchlist(watchlist.filter((item) => item.id !== existing.id));
-      } else {
-        const res = await addToWatchlist(asset.id);
-        setWatchlist([...watchlist, res.data]);
-      }
-    } catch (err) {
-      console.error('Watchlist toggle error:', err);
-      alert('Failed to update watchlist');
+    let newWatchlist;
+    if (existing) {
+      newWatchlist = watchlist.filter((item) => item.assetId !== asset.id);
+    } else {
+      newWatchlist = [...watchlist, { assetId: asset.id, asset: asset }];
     }
+    setWatchlist(newWatchlist);
+    saveLocalWatchlist(newWatchlist);
   };
 
   const handleLogout = () => {
@@ -260,7 +250,7 @@ const Dashboard = () => {
               placeholder="Search for an asset to simulate..."
             />
 
-            {/* ✅ Watchlist toggle button */}
+            {/* ✅ Watchlist toggle button – works with localStorage */}
             {selectedAsset && (
               <button
                 className={`watchlist-toggle-btn ${
