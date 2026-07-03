@@ -30,6 +30,7 @@ export const searchAssets = (query) => API.get(`/assets/search?query=${query}`);
 export const getWatchlist = () => API.get('/watchlist');
 export const addToWatchlist = (assetId) => API.post('/watchlist', { assetId });
 export const removeFromWatchlist = (watchlistId) => API.delete(`/watchlist/${watchlistId}`);
+export const getStockPrice = (symbol) => API.get(`/market/stock/${symbol}`);
 
 export { API as api };
 export default API; // ✅ Allows default imports

@@ -1,33 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { getStockPrice } from '../api';
 
-const StockTicker = ({ symbols = ['AAPL', 'TSLA', 'MSFT', 'GOOGL'] }) => {
+const StockTicker = ({ symbols }) => {
   const [prices, setPrices] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchPrices = async () => {
+    const updates = {};
+    for (const symbol of symbols) {
+      try {
+        const res = await getStockPrice(symbol);
+        // ✅ The response has a `price` field (number)
+        updates[symbol] = res.data.price ?? '—';
+      } catch (err) {
+        console.error('Error fetching price for', symbol, err);
+        updates[symbol] = '—';
+      }
+    }
+    setPrices(updates);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      const newPrices = {};
-      for (const sym of symbols) {
-        try {
-          const res = await axios.get(`http://localhost:5000/api/market/stock/${sym}`);
-          newPrices[sym] = res.data.price;
-        } catch (err) {
-          newPrices[sym] = 'N/A';
-        }
-      }
-      setPrices(newPrices);
-    };
     fetchPrices();
-    const interval = setInterval(fetchPrices, 30000);
+    const interval = setInterval(fetchPrices, 10000);
     return () => clearInterval(interval);
   }, [symbols]);
 
+  if (loading) return <div className="price-ticker">Loading prices...</div>;
+
   return (
-    <div className="stock-ticker">
-      {symbols.map(sym => (
-        <div key={sym} className="ticker-item">
-          <span className="ticker-symbol">{sym}</span>
-          <span className="ticker-price">${prices[sym] || '...'}</span>
+    <div className="price-ticker">
+      {symbols.map((symbol) => (
+        <div key={symbol} className="ticker-item">
+          <span className="ticker-symbol">{symbol}</span>
+          <span className="ticker-price">${prices[symbol] !== '—' ? prices[symbol].toFixed(2) : 'N/A'}</span>
         </div>
       ))}
     </div>
