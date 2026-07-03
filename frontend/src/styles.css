@@ -1,7 +1,5 @@
 /* ============================================================
-   INV TECH – MASTER STYLESHEET (FULLY UPDATED)
-   Includes: Reset, Navbar, Dashboard, PublicPage, Predictive,
-   Dark Mode, Mobile Hamburger, Animations, Contact, FAQ
+   INV TECH – MASTER STYLESHEET (UPDATED)
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -499,7 +497,7 @@ a {
     text-align: center;
 }
 
-/* ---------- DASHBOARD (FIXED LAYOUT) ---------- */
+/* ---------- DASHBOARD (SINGLE COLUMN) ---------- */
 .dashboard-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -580,17 +578,16 @@ a {
     color: #0a1e3a;
 }
 
-/* Main grid – two columns on desktop, one on mobile */
+/* Single column grid (history under simulator) */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
     width: 100%;
 }
 
 @media (max-width: 768px) {
     .dashboard-grid {
-        grid-template-columns: 1fr;
         gap: 1.5rem;
     }
 }
@@ -789,6 +786,82 @@ a {
     line-height: 1.5;
     border-left: 4px solid #ffb74d;
     color: #444;
+}
+
+/* ---------- ASSET SUGGESTIONS (Narrow, Scrollable) ---------- */
+.asset-suggestions {
+    margin: 1rem 0 0.5rem;
+    max-width: 400px;
+    /* match search input width */
+    width: 100%;
+}
+
+.asset-suggestions h4 {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    color: #4a5a6e;
+}
+
+.suggestion-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.2rem 0 0.6rem 0;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.suggestion-chip {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: white;
+    border-radius: 40px;
+    padding: 0.15rem 0.5rem 0.15rem 0.7rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+}
+
+.suggestion-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chip-name {
+    font-weight: 600;
+}
+
+.chip-ticker {
+    color: #6b7b8e;
+    font-size: 0.65rem;
+}
+
+.chip-risk {
+    font-size: 0.55rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.chip-risk.low {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.chip-risk.medium {
+    background: #ffe0b2;
+    color: #ef6c00;
+}
+
+.chip-risk.high {
+    background: #ffcdd2;
+    color: #c62828;
 }
 
 /* ---------- PREDICTIVE PAGE ---------- */
@@ -2141,79 +2214,6 @@ a {
 
 .dark-mode .asset-selector-react .asset-select__single-value {
     color: var(--text-primary);
-}
-
-/* ---------- ASSET SUGGESTIONS (Small, Scrollable Chips) ---------- */
-.asset-suggestions {
-    margin: 1rem 0 0.5rem;
-}
-
-.asset-suggestions h4 {
-    font-size: 0.85rem;
-    margin-bottom: 0.3rem;
-    color: #4a5a6e;
-}
-
-.suggestion-chips {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding: 0.2rem 0 0.6rem 0;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
-}
-
-.suggestion-chip {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: white;
-    border-radius: 40px;
-    padding: 0.15rem 0.5rem 0.15rem 0.7rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    cursor: pointer;
-    transition: all 0.15s;
-    border: 1px solid #e2e8f0;
-    font-size: 0.75rem;
-}
-
-.suggestion-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.chip-name {
-    font-weight: 600;
-}
-
-.chip-ticker {
-    color: #6b7b8e;
-    font-size: 0.65rem;
-}
-
-.chip-risk {
-    font-size: 0.55rem;
-    padding: 0.05rem 0.35rem;
-    border-radius: 20px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.chip-risk.low {
-    background: #c8e6c9;
-    color: #2e7d32;
-}
-
-.chip-risk.medium {
-    background: #ffe0b2;
-    color: #ef6c00;
-}
-
-.chip-risk.high {
-    background: #ffcdd2;
-    color: #c62828;
 }
 
 /* ---------- WATCHLIST TOGGLE BUTTON ---------- */
