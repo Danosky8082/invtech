@@ -3,6 +3,8 @@ const axios = require('axios');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const YahooFinance = require('yahoo-finance2');
+const yahooFinance = new YahooFinance();
 
 // ==================== MOCK DATA GENERATOR ====================
 function generateMockData(ticker) {
