@@ -5,6 +5,7 @@ import HistoryModal from './HistoryModal';
 import { getAssets, getHistory, getExchangeRate, api } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import AssetSuggestions from './AssetSuggestions';
+import StockTicker from './StockTicker';
 
 // ✅ LocalStorage watchlist helpers
 const getLocalWatchlist = () => {
@@ -197,6 +198,7 @@ const Dashboard = () => {
   return (
     <div>
       <MarqueeExchange />
+      <StockTicker symbols={['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOGL']} />
       <div className="dashboard-container">
         <div className="dashboard-header">
           <div>

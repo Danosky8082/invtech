@@ -10,6 +10,7 @@ import FAQ from './components/FAQ';
 import Predictive from './components/Predictive';
 import Portfolio from './components/Portfolio';
 import Watchlist from './components/Watchlist';
+import Settings from './components/Settings';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/predictive" element={<Predictive />} /> {/* ✅ new route */}
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/watchlist" element={<Watchlist />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </BrowserRouter>
   );
