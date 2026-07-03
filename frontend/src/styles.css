@@ -2289,3 +2289,13 @@ a {
     min-height: 200px;
     /* add this temporarily to see if it appears */
 }
+
+/* 🔍 DEBUG: force history card visible */
+.history-card {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #ff000033 !important;
+    border: 3px solid red !important;
+    min-height: 200px !important;
+}
