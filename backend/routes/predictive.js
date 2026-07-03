@@ -4,7 +4,7 @@ const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// ✅ Correct import for yahoo-finance2 (no constructor – we may not even need it here)
+// ✅ Correct import – no constructor, no .default
 const yahooFinance = require('yahoo-finance2');
 
 // ==================== MOCK DATA GENERATOR ====================

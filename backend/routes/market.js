@@ -3,7 +3,7 @@ const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const router = express.Router();
 
-// ✅ Correct import for yahoo-finance2 v3 (no constructor, no .default)
+// ✅ Correct import – no constructor, no .default, no duplicate
 const yahooFinance = require('yahoo-finance2');
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
