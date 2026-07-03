@@ -198,7 +198,6 @@ const Dashboard = () => {
   return (
     <div>
       <MarqueeExchange />
-      <StockTicker symbols={['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOGL']} />
       <div className="dashboard-container">
         <div className="dashboard-header">
           <div>
@@ -224,6 +223,9 @@ const Dashboard = () => {
             <button onClick={handleLogout} className="logout-btn">Logout</button>
           </div>
         </div>
+
+        {/* ✅ Real-time Price Ticker */}
+        <StockTicker symbols={['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOGL']} />
 
         {recommendations.length > 0 && (
           <div className="recommendations-card">
