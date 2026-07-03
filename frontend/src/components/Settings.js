@@ -16,7 +16,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await API.get('/user');
+        const res = await API.get('/user/profile');
         setUser(res.data);
         setUsername(res.data.username);
         setEmail(res.data.email);
