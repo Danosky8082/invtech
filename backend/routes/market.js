@@ -1,8 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const { getStockPrice } = require('../services/dataService');
 const router = express.Router();
+const { getStockPrice } = require('../services/dataService');
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
@@ -132,13 +132,14 @@ router.get('/treasury-yields', async (req, res) => {
   }
 });
 
-// ==================== STOCK QUOTE (USING DATA SERVICE) ====================
+// ==================== STOCK QUOTE ====================
 router.get('/stock/:symbol', async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(symbol)) {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
+    // Use centralised price fetcher from dataService
     const price = await getStockPrice(symbol);
     res.json({
       symbol,
