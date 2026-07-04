@@ -21,18 +21,22 @@ router.post('/', auth, async (req, res) => {
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // ✅ Save to database using relation connect
-    const backtest = await prisma.backtest.create({
-      data: {
-        user: { connect: { id: req.user.id } },
-        asset: assetId ? { connect: { id: assetId } } : undefined,
-        ticker: ticker,
-        strategy: strategy,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        results: results,
-      },
-    });
+    // ✅ Build data object conditionally
+    const data = {
+      user: { connect: { id: req.user.id } },
+      ticker: ticker,
+      strategy: strategy,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      results: results,
+    };
+
+    // Only add asset relation if assetId exists
+    if (assetId) {
+      data.asset = { connect: { id: assetId } };
+    }
+
+    const backtest = await prisma.backtest.create({ data });
 
     res.json({ ...results, backtestId: backtest.id });
   } catch (err) {
