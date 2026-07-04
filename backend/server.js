@@ -5,6 +5,7 @@ const portfolioRoutes = require('./routes/portfolio');
 const assetRoutes = require('./routes/assets');
 const watchlistRoutes = require('./routes/watchlist');
 const userRoutes = require('./routes/user');
+const backtestRoutes = require('./routes/backtest');
 
 // Check if Prisma Client is generated; if not, generate it
 const prismaClientPath = './node_modules/.prisma/client';
@@ -39,6 +40,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/backtest', backtestRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -17,6 +17,7 @@ model User {
 
   simulations    UserSimulation[]
   watchlists     Watchlist[]
+  backtests      Backtest[]
 
   @@map("users")
 }
@@ -31,6 +32,7 @@ model Asset {
 
   simulations    UserSimulation[]
   watchlists     Watchlist[]
+  backtests      Backtest[]
 
   @@map("assets")
 }
@@ -65,4 +67,22 @@ model Watchlist {
 
   @@unique([userId, assetId])
   @@map("watchlists")
+}
+
+// NEW: Backtest model
+model Backtest {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  assetId     Int      @map("asset_id")
+  ticker      String   @map("ticker")
+  strategy    String   // "buy_and_hold", "ma_crossover", "rsi", etc.
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  results     Json     @map("results")  // Stores all metrics and trade log
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  asset  Asset  @relation(fields: [assetId], references: [id])
+
+  @@map("backtests")
 }

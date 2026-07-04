@@ -2510,3 +2510,163 @@ a {
 .dark-mode .ticker-item {
     background: rgba(255, 255, 255, 0.04);
 }
+
+/* ---------- BACKTEST PAGE ---------- */
+.backtest-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.backtest-container h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #0a1e3a;
+    margin-bottom: 0.25rem;
+}
+
+.backtest-container>p {
+    color: #4a5a6e;
+    margin-bottom: 2rem;
+    border-left: 4px solid #f6d365;
+    padding-left: 1rem;
+}
+
+.backtest-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f4f9;
+    margin-bottom: 2rem;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.control-group label {
+    font-weight: 600;
+    color: #1a2a3a;
+    font-size: 0.9rem;
+}
+
+.control-group select,
+.control-group input {
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+    background: white;
+}
+
+.run-btn {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-end;
+}
+
+.run-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 60, 114, 0.25);
+}
+
+.run-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.metric-card {
+    background: white;
+    padding: 1rem 0.8rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f4f9;
+}
+
+.metric-card h4 {
+    font-size: 0.8rem;
+    color: #6b7b8e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+
+.metric-card p {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.metric-card .positive {
+    color: #2e7d32;
+}
+
+.metric-card .negative {
+    color: #c62828;
+}
+
+.trades-log {
+    margin-top: 2rem;
+}
+
+.trades-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.trades-table th {
+    background: #f8fafc;
+    color: #4a5a6e;
+    font-weight: 600;
+    padding: 0.8rem 1rem;
+    text-align: left;
+}
+
+.trades-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #f0f4f9;
+}
+
+.trades-table .buy {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.trades-table .sell {
+    color: #c62828;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .backtest-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .run-btn {
+        width: 100%;
+    }
+}

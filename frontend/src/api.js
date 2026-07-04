@@ -31,6 +31,9 @@ export const getWatchlist = () => API.get('/watchlist');
 export const addToWatchlist = (assetId) => API.post('/watchlist', { assetId });
 export const removeFromWatchlist = (watchlistId) => API.delete(`/watchlist/${watchlistId}`);
 export const getStockPrice = (symbol) => API.get(`/market/stock/${symbol}`);
+export const runBacktest = (data) => API.post('/backtest', data);
+export const getBacktestHistory = () => API.get('/backtest/history');
+export const getBacktest = (id) => API.get(`/backtest/${id}`);
 
 export { API as api };
 export default API; // ✅ Allows default imports
