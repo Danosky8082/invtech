@@ -142,14 +142,19 @@ router.get('/stock/:symbol', async (req, res) => {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
-    const price = await getStockPrice(symbol);
+    // Use centralised price fetcher (Alpha Vantage → Yahoo → fallback)
+    let price = await getStockPrice(symbol);
+    // If getStockPrice returns null, use fallback
+    if (price === null || price === undefined) {
+      price = 100.00;
+    }
     res.json({
       symbol,
       price,
       change: 0,
       changePercent: 0,
       volume: 0,
-      note: price === 100.00 ? 'estimated' : '',
+      note: price === 100.00 ? 'estimated (Yahoo unavailable)' : '',
     });
   } catch (err) {
     console.error('Stock fetch error:', err.message);

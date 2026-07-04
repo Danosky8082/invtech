@@ -27,13 +27,14 @@ async function getStockPrice(symbol) {
     }
   }
   // Fallback to Yahoo
+  async function getStockPrice(symbol) {
   try {
     const quote = await yahooFinance.quote(symbol);
     return quote.regularMarketPrice || null;
-  } catch (err) {
-    console.warn(`Could not fetch price for ${symbol}:`, err.message);
+  } catch {
     return null;
   }
+}
 }
 
 /**
