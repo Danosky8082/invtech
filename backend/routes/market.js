@@ -3,7 +3,8 @@ const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const router = express.Router();
 const { getStockPrice } = require('../services/dataService');
-const yahooFinance = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2').default;
+const yahooFinance = new YahooFinance();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {

@@ -1,4 +1,6 @@
 const { getHistoricalData } = require('../services/dataService');
+const YahooFinance = require('yahoo-finance2').default;
+const yahooFinance = new YahooFinance();
 
 /**
  * Compute moving average
