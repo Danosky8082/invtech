@@ -6,6 +6,7 @@ const router = express.Router();
 
 // POST /api/backtest
 router.post('/', auth, async (req, res) => {
+  console.log('[Backtest] prisma.backtest exists?', !!prisma.backtest);
   const { ticker, strategy, startDate, endDate, params = {} } = req.body;
 
   if (!ticker || !strategy || !startDate || !endDate) {
