@@ -46,3 +46,48 @@ async function getStockPrice(symbol) {
   console.warn(`[getStockPrice] No price for ${symbol}, using fallback 100.00`);
   return 100.00;
 }
+
+/**
+ * Fetch historical data for a ticker within a date range
+ */
+async function getHistoricalData(ticker, startDate, endDate) {
+  try {
+    const result = await yahooFinance.historical(ticker, {
+      period1: startDate,
+      period2: endDate,
+      interval: '1d',
+    });
+    return result;
+  } catch (err) {
+    console.error('Yahoo Finance error:', err.message);
+    return generateMockHistoricalData(ticker, startDate, endDate);
+  }
+}
+
+/**
+ * Generate mock historical data (fallback)
+ */
+function generateMockHistoricalData(ticker, startDate, endDate) {
+  const data = [];
+  const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+  let price = 100;
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(endDate);
+    date.setDate(date.getDate() - i);
+    const change = (Math.random() - 0.5) * 4;
+    price = price * (1 + change / 100);
+    if (price < 1) price = 1;
+    data.push({
+      date: date,
+      close: price,
+      open: price * (1 + (Math.random() - 0.5) * 0.02),
+      high: price * (1 + Math.random() * 0.03),
+      low: price * (1 - Math.random() * 0.03),
+      volume: Math.floor(Math.random() * 1000000),
+    });
+  }
+  return data;
+}
+
+// ✅ Export both functions
+module.exports = { getStockPrice, getHistoricalData };
