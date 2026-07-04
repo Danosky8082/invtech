@@ -118,6 +118,17 @@ const Dashboard = () => {
     loadData();
   }, []);
 
+  // Recalculate recommendations whenever history or assets change
+useEffect(() => {
+  if (history.length > 0 && assets.length > 0) {
+    generateRecommendations(history, assets);
+  } else if (assets.length > 0) {
+    // Default to low-risk if no history
+    const lowRisk = assets.filter(a => a.riskLevel === 'low').slice(0, 3);
+    setRecommendations(lowRisk.length ? lowRisk : assets.slice(0, 3));
+  }
+}, [history, assets]);
+
   const generateRecommendations = (userHistory, allAssets) => {
     if (!userHistory.length) {
       setRecommendations(allAssets.filter((a) => a.riskLevel === 'low').slice(0, 3));
