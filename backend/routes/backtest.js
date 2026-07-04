@@ -14,18 +14,18 @@ router.post('/', auth, async (req, res) => {
   }
 
   try {
-    // Optionally, check if asset exists in DB (if not, we still can run backtest)
+    // Check if asset exists in DB
     let asset = await prisma.asset.findUnique({ where: { ticker } });
     let assetId = asset?.id || null;
 
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // Save to database
+    // ✅ Save to database using relation connect
     const backtest = await prisma.backtest.create({
       data: {
-        userId: req.user.id,
-        assetId: assetId,
+        user: { connect: { id: req.user.id } },
+        asset: assetId ? { connect: { id: assetId } } : undefined,
         ticker: ticker,
         strategy: strategy,
         startDate: new Date(startDate),
@@ -41,7 +41,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// GET /api/backtest/history – fetch user's past backtests
+// GET /api/backtest/history
 router.get('/history', auth, async (req, res) => {
   try {
     const backtests = await prisma.backtest.findMany({
@@ -55,7 +55,7 @@ router.get('/history', auth, async (req, res) => {
   }
 });
 
-// GET /api/backtest/:id – fetch a specific backtest result
+// GET /api/backtest/:id
 router.get('/:id', auth, async (req, res) => {
   const { id } = req.params;
   try {
