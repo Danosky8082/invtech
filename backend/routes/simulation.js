@@ -4,6 +4,7 @@ const { convertCurrency } = require('@sharmag44/currency-converter');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const { getStockPrice } = require('../services/dataService');
 
 // ==================== FALLBACK EXCHANGE RATES ====================
 const FALLBACK_RATES = {
@@ -199,16 +200,15 @@ router.post('/simulate', auth, async (req, res) => {
     let livePrice = null;
     let livePriceInUserCurrency = null;
     if (asset.ticker) {
-      try {
-        const stockRes = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/market/stock/${asset.ticker}`);
-        livePrice = stockRes.data.price;
-        if (currency !== 'USD' && livePrice) {
-          livePriceInUserCurrency = await convertWithFallback('USD', currency, livePrice);
-        } else {
-          livePriceInUserCurrency = livePrice;
-        }
-      } catch (err) { /* silent – continue without live price */ }
+  try {
+    livePrice = await getStockPrice(asset.ticker);
+    if (currency !== 'USD' && livePrice) {
+      livePriceInUserCurrency = await convertWithFallback('USD', currency, livePrice);
+    } else {
+      livePriceInUserCurrency = livePrice;
     }
+  } catch (err) { /* silent – continue without live price */ }
+}
 
     // Step 5: Convert results back to user's currency using fallback
     let profitDisplay = profitUSD;

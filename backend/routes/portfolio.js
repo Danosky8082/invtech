@@ -2,7 +2,7 @@ const express = require('express');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
-const yahooFinance = require('yahoo-finance2');
+const { getStockPrice } = require('../services/dataService');
 
 // GET /portfolio – aggregated holdings with real-time values
 router.get('/', auth, async (req, res) => {
@@ -29,7 +29,7 @@ router.get('/', auth, async (req, res) => {
     const holdingsMap = {};
     let totalInvested = 0;
     let totalExpectedProfit = 0;
-    let totalRealizedProfit = 0; // placeholder – we'll compute later
+    let totalRealizedProfit = 0;
 
     simulations.forEach((sim) => {
       const assetId = sim.assetId;
@@ -47,13 +47,8 @@ router.get('/', auth, async (req, res) => {
       }
       holdingsMap[assetId].totalInvested += sim.amountInvested;
       holdingsMap[assetId].totalExpectedProfit += sim.expectedProfit;
-      // Accumulate shares if we have a valid priceAtSimulation
       if (sim.priceAtSimulation && sim.priceAtSimulation > 0) {
         holdingsMap[assetId].totalShares += sim.amountInvested / sim.priceAtSimulation;
-      } else {
-        // If no priceAtSimulation, we can't calculate shares; we'll treat as zero shares
-        // and keep totalInvested for display but no real-time value
-        // We'll still add totalInvested but skip share accumulation.
       }
       totalInvested += sim.amountInvested;
       totalExpectedProfit += sim.expectedProfit;
@@ -68,17 +63,9 @@ router.get('/', auth, async (req, res) => {
       let unrealizedProfit = null;
       let unrealizedProfitPercent = null;
 
-      // Try to fetch live price if ticker exists
+      // ✅ Use centralised price fetcher (handles premium and fallback)
       if (h.ticker && h.ticker !== 'N/A') {
-        try {
-          const quote = await yahooFinance.quote(h.ticker);
-          if (quote && quote.regularMarketPrice) {
-            currentPrice = quote.regularMarketPrice;
-          }
-        } catch (e) {
-          // If fetch fails, keep currentPrice null
-          console.warn(`Could not fetch price for ${h.ticker}:`, e.message);
-        }
+        currentPrice = await getStockPrice(h.ticker);
       }
 
       // If we have shares and a current price, compute real-time value
@@ -108,7 +95,6 @@ router.get('/', auth, async (req, res) => {
         allocationPercent: totalInvested > 0 ? (h.totalInvested / totalInvested) * 100 : 0,
       });
 
-      // Accumulate realized profit (we'll use expected profit for now)
       totalRealizedProfit += h.totalExpectedProfit;
     }
 
@@ -118,14 +104,14 @@ router.get('/', auth, async (req, res) => {
     // Compute overall totals
     const totalCurrentValue = holdings.reduce((sum, h) => sum + (h.currentValue || 0), 0);
     const totalUnrealizedProfit = totalCurrentValue - totalInvested;
-    const totalRealizedProfitValue = totalExpectedProfit; // using expected profit as proxy for realized
+    const totalUnrealizedProfitPercent = totalInvested > 0 ? (totalUnrealizedProfit / totalInvested) * 100 : 0;
 
     res.json({
       totalInvested,
       totalExpectedProfit,
-      totalValue: totalCurrentValue, // real-time total value
+      totalValue: totalCurrentValue,
       totalUnrealizedProfit,
-      totalUnrealizedProfitPercent: totalInvested > 0 ? (totalUnrealizedProfit / totalInvested) * 100 : 0,
+      totalUnrealizedProfitPercent,
       holdings,
     });
   } catch (err) {

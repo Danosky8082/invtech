@@ -3,11 +3,9 @@ const axios = require('axios');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const { getHistoricalData } = require('../services/dataService');
 
-// ✅ Correct import – no constructor, no .default
-const yahooFinance = require('yahoo-finance2');
-
-// ==================== MOCK DATA GENERATOR ====================
+// ==================== MOCK DATA GENERATOR (fallback) ====================
 function generateMockData(ticker) {
   const basePrice = 100 + (Math.random() * 50);
   const prices = [];
@@ -53,7 +51,34 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
   const { days = 30, scenario = 'neutral' } = req.query;
 
   try {
-    const { prices, dates } = generateMockData(ticker);
+    // 1. Fetch real historical data (last 90 days)
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 90);
+    let historical;
+    let isReal = false;
+
+    try {
+      historical = await getHistoricalData(ticker, startDate, endDate);
+      if (historical && historical.length > 0) {
+        isReal = true;
+      }
+    } catch (err) {
+      console.log('Historical data fetch failed, using mock:', err.message);
+    }
+
+    // 2. Extract prices and dates (real or mock)
+    let prices, dates;
+    if (isReal) {
+      prices = historical.map(d => d.close);
+      dates = historical.map(d => d.date.toISOString().split('T')[0]);
+    } else {
+      const mock = generateMockData(ticker);
+      prices = mock.prices;
+      dates = mock.dates;
+    }
+
+    // 3. Compute indicators
     const ma7 = calculateMovingAverage(prices, 7);
     const ma30 = calculateMovingAverage(prices, 30);
     const volatility = calculateVolatility(prices.slice(-30));
@@ -63,10 +88,12 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     const avgPrice = last10Prices.reduce((a, b) => a + b, 0) / last10Prices.length;
     const trend = (currentPrice - avgPrice) / avgPrice;
 
+    // 4. Adjust for scenario
     let volatilityMultiplier = 1;
     if (scenario === 'optimistic') volatilityMultiplier = 0.5;
     else if (scenario === 'pessimistic') volatilityMultiplier = 1.5;
 
+    // 5. Generate forecast
     const forecastDays = parseInt(days, 10) || 30;
     const forecastDates = [];
     const forecastPrices = [];
@@ -83,6 +110,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       forecastLower.push(projectedPrice * (1 - volatility * volatilityMultiplier * 0.5));
     }
 
+    // 6. Compute metrics
     const returns = prices.map((p, i) => (i > 0) ? (p - prices[i-1]) / prices[i-1] : 0);
     const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
     const annualizedReturn = avgReturn * 252;
@@ -96,13 +124,14 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
       if (drawdown > maxDrawdown) maxDrawdown = drawdown;
     }
 
+    // 7. Build response
     res.json({
       ticker,
       currentPrice,
       volatility: volatility * 100,
       trend: trend * 100,
-      isReal: false,
-      note: 'Simulated data (real data unavailable)',
+      isReal,
+      note: isReal ? '' : 'Simulated data (real data unavailable)',
       historical: {
         dates: dates.slice(-30),
         prices: prices.slice(-30),
@@ -127,6 +156,7 @@ router.get('/forecast/:ticker', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Forecast error:', err.message);
+    // Ultimate fallback
     res.json({
       ticker,
       currentPrice: 100.00,

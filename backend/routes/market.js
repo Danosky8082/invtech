@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
 const router = express.Router();
+const { getStockPrice } = require('../services/dataService');
 
 // ✅ Correct import – no constructor, no .default, no duplicate
 const yahooFinance = require('yahoo-finance2');
@@ -141,19 +142,14 @@ router.get('/stock/:symbol', async (req, res) => {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
-    let price = 100.00;
-    // ✅ Safe check: only call if yahooFinance exists and has quote method
-    if (yahooFinance && typeof yahooFinance.quote === 'function') {
-      const quote = await yahooFinance.quote(symbol);
-      if (quote && quote.regularMarketPrice) price = quote.regularMarketPrice;
-    }
+    const price = await getStockPrice(symbol);
     res.json({
       symbol,
       price,
       change: 0,
       changePercent: 0,
       volume: 0,
-      note: (yahooFinance && typeof yahooFinance.quote === 'function') ? '' : 'estimated (Yahoo unavailable)'
+      note: price === 100.00 ? 'estimated' : '',
     });
   } catch (err) {
     console.error('Stock fetch error:', err.message);
