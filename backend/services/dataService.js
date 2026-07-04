@@ -1,5 +1,5 @@
-const YahooFinance = require('yahoo-finance2');
-const yahooFinance = new YahooFinance();
+// ✅ Correct import for CommonJS
+const yahooFinance = require('yahoo-finance2').default;
 
 let alphaVantage = null;
 try {
@@ -60,7 +60,7 @@ async function getHistoricalData(ticker, startDate, endDate) {
     });
     return result;
   } catch (err) {
-    console.error('Yahoo Finance error:', err.message);
+    console.error('Yahoo Finance historical error:', err.message);
     return generateMockHistoricalData(ticker, startDate, endDate);
   }
 }
@@ -90,5 +90,4 @@ function generateMockHistoricalData(ticker, startDate, endDate) {
   return data;
 }
 
-// ✅ Export both functions
 module.exports = { getStockPrice, getHistoricalData };

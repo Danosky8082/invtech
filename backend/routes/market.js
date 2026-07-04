@@ -1,14 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const { convertCurrency } = require('@sharmag44/currency-converter');
-const router = express.Router();
 const { getStockPrice } = require('../services/dataService');
-
-// ✅ Correct import – no constructor, no .default, no duplicate
-const YahooFinance = require('yahoo-finance2');
-const yahooFinance = new YahooFinance();
-
-console.log('[market.js] getStockPrice type:', typeof getStockPrice);
+const router = express.Router();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
@@ -138,26 +132,21 @@ router.get('/treasury-yields', async (req, res) => {
   }
 });
 
-// ==================== STOCK QUOTE (SAFE) ====================
+// ==================== STOCK QUOTE (USING DATA SERVICE) ====================
 router.get('/stock/:symbol', async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(symbol)) {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
-    // Use centralised price fetcher (Alpha Vantage → Yahoo → fallback)
-    let price = await getStockPrice(symbol);
-    // If getStockPrice returns null, use fallback
-    if (price === null || price === undefined) {
-      price = 100.00;
-    }
+    const price = await getStockPrice(symbol);
     res.json({
       symbol,
       price,
       change: 0,
       changePercent: 0,
       volume: 0,
-      note: price === 100.00 ? 'estimated (Yahoo unavailable)' : '',
+      note: price === 100.00 ? 'estimated (data unavailable)' : '',
     });
   } catch (err) {
     console.error('Stock fetch error:', err.message);
