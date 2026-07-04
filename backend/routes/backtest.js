@@ -21,15 +21,15 @@ router.post('/', auth, async (req, res) => {
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // ✅ Use scalar fields directly
+    // ✅ Use relation for user, scalar for asset
     const backtestData = {
-      userId: req.user.id,
+      user: { connect: { id: req.user.id } },
       ticker: ticker,
       strategy: strategy,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       results: results,
-      assetId: assetId, // null if asset not in DB
+      assetId: assetId, // scalar field (will be null if asset not found)
     };
 
     const backtest = await prisma.backtest.create({ data: backtestData });
