@@ -1,4 +1,4 @@
-const yahooFinance = require('yahoo-finance2');
+const yahooFinance = require('yahoo-finance2').default;
 
 // Try to load Alpha Vantage if key is available
 let alphaVantage = null;

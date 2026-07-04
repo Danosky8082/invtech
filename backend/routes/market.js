@@ -5,7 +5,7 @@ const router = express.Router();
 const { getStockPrice } = require('../services/dataService');
 
 // ✅ Correct import – no constructor, no .default, no duplicate
-const yahooFinance = require('yahoo-finance2');
+const yahooFinance = require('yahoo-finance2').default;
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
