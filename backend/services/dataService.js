@@ -1,4 +1,5 @@
-const yahooFinance = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2');
+const yahooFinance = new YahooFinance();
 
 let alphaVantage = null;
 try {

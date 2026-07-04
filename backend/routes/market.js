@@ -5,7 +5,8 @@ const router = express.Router();
 const { getStockPrice } = require('../services/dataService');
 
 // ✅ Correct import – no constructor, no .default, no duplicate
-const yahooFinance = require('yahoo-finance2').default;
+const YahooFinance = require('yahoo-finance2');
+const yahooFinance = new YahooFinance();
 
 console.log('[market.js] getStockPrice type:', typeof getStockPrice);
 
