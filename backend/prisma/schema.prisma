@@ -69,7 +69,6 @@ model Watchlist {
   @@map("watchlists")
 }
 
-// NEW: Backtest model
 model Backtest {
   id          Int      @id @default(autoincrement())
   userId      Int      @map("user_id")
