@@ -14,22 +14,34 @@ router.post('/', auth, async (req, res) => {
   }
 
   try {
-    // Check if asset exists in DB
+    // Find or create asset
     let asset = await prisma.asset.findUnique({ where: { ticker } });
-    let assetId = asset?.id || null;
+    if (!asset) {
+      // Create asset with default values
+      asset = await prisma.asset.create({
+        data: {
+          name: ticker,
+          ticker: ticker,
+          type: 'stock',
+          expectedReturn: 0.10,
+          riskLevel: 'medium',
+        },
+      });
+      console.log(`Created new asset for backtest: ${ticker}`);
+    }
 
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // ✅ Use relation for user, scalar for asset
+    // Now we always have an assetId, so we can use both relations
     const backtestData = {
       user: { connect: { id: req.user.id } },
+      asset: { connect: { id: asset.id } },
       ticker: ticker,
       strategy: strategy,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       results: results,
-      assetId: assetId, // scalar field (will be null if asset not found)
     };
 
     const backtest = await prisma.backtest.create({ data: backtestData });
@@ -38,35 +50,6 @@ router.post('/', auth, async (req, res) => {
   } catch (err) {
     console.error('Backtest error:', err.message);
     res.status(500).json({ error: 'Failed to run backtest: ' + err.message });
-  }
-});
-
-// GET /api/backtest/history
-router.get('/history', auth, async (req, res) => {
-  try {
-    const backtests = await prisma.backtest.findMany({
-      where: { userId: req.user.id },
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(backtests);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch backtest history' });
-  }
-});
-
-// GET /api/backtest/:id
-router.get('/:id', auth, async (req, res) => {
-  const { id } = req.params;
-  try {
-    const backtest = await prisma.backtest.findFirst({
-      where: { id: parseInt(id), userId: req.user.id },
-    });
-    if (!backtest) return res.status(404).json({ error: 'Backtest not found' });
-    res.json(backtest);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch backtest' });
   }
 });
 
