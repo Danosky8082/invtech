@@ -21,9 +21,9 @@ router.post('/', auth, async (req, res) => {
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // ✅ Build data object using relation connect for user
+    // ✅ Build data object using relation connect
     const backtestData = {
-      user: { connect: { id: req.user.id } },
+      user: { connect: { id: req.user.id } },   // 👈 Use relation, not userId
       ticker: ticker,
       strategy: strategy,
       startDate: new Date(startDate),
