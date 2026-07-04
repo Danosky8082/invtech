@@ -13,6 +13,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "@sharmag44/currency-converter": "^1.0.2",
+    "alphavantage": "^2.5.0",
     "axios": "^1.18.0",
     "bcrypt": "^6.0.0",
     "chart.js": "^4.5.1",
