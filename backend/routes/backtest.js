@@ -21,9 +21,9 @@ router.post('/', auth, async (req, res) => {
     // Run the backtest
     const results = await runBacktest(ticker, new Date(startDate), new Date(endDate), strategy, params);
 
-    // ✅ Build data object using direct fields (no relation connect)
+    // ✅ Build data object using relation connect for user
     const backtestData = {
-      userId: req.user.id,
+      user: { connect: { id: req.user.id } },
       ticker: ticker,
       strategy: strategy,
       startDate: new Date(startDate),
@@ -31,9 +31,9 @@ router.post('/', auth, async (req, res) => {
       results: results,
     };
 
-    // Only add assetId if asset exists
+    // Only add asset relation if asset exists
     if (assetId) {
-      backtestData.assetId = assetId;
+      backtestData.asset = { connect: { id: assetId } };
     }
 
     const backtest = await prisma.backtest.create({ data: backtestData });
