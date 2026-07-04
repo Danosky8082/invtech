@@ -7,6 +7,8 @@ const { getStockPrice } = require('../services/dataService');
 // ✅ Correct import – no constructor, no .default, no duplicate
 const yahooFinance = require('yahoo-finance2').default;
 
+console.log('[market.js] getStockPrice type:', typeof getStockPrice);
+
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
   const mockMap = {
