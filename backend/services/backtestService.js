@@ -1,8 +1,5 @@
 const yahooFinance = require('yahoo-finance2');
 
-/**
- * Fetch historical data for a ticker within a date range
- */
 async function getHistoricalData(ticker, startDate, endDate) {
   try {
     const result = await yahooFinance.historical(ticker, {
@@ -13,14 +10,11 @@ async function getHistoricalData(ticker, startDate, endDate) {
     return result;
   } catch (err) {
     console.error('Yahoo Finance error:', err.message);
-    // Fallback to mock data if Yahoo fails
+    // Fallback to mock data
     return generateMockHistoricalData(ticker, startDate, endDate);
   }
 }
 
-/**
- * Generate mock historical data (fallback)
- */
 function generateMockHistoricalData(ticker, startDate, endDate) {
   const data = [];
   const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
