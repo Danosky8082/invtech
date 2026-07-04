@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { runBacktest, getAssets } from '../api';
+import React, { useState } from 'react';
+import { runBacktest } from '../api';
 import AsyncAssetSelector from './AsyncAssetSelector';
 import {
   Chart as ChartJS,
@@ -75,12 +75,6 @@ const Backtest = () => {
       },
     ],
   } : null;
-
-  const getSignalEmoji = (signal) => {
-    if (signal === 'BUY') return '🟢 BUY';
-    if (signal === 'SELL') return '🔴 SELL';
-    return '⚪ HOLD';
-  };
 
   return (
     <div className="backtest-container">
