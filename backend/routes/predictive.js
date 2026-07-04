@@ -4,6 +4,7 @@ const prisma = require('../db');
 const auth = require('../middleware/auth');
 const router = express.Router();
 const { getHistoricalData } = require('../services/dataService');
+const yahooFinance = require('yahoo-finance2').default;
 
 // ==================== MOCK DATA GENERATOR (fallback) ====================
 function generateMockData(ticker) {

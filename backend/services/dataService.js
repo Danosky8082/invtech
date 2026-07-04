@@ -1,4 +1,4 @@
-// ✅ Correct import for CommonJS
+// ✅ Correct CommonJS import
 const yahooFinance = require('yahoo-finance2').default;
 
 let alphaVantage = null;
@@ -32,12 +32,9 @@ async function getStockPrice(symbol) {
   try {
     console.log(`[getStockPrice] Trying Yahoo for ${symbol}`);
     const quote = await yahooFinance.quote(symbol);
-    console.log(`[getStockPrice] Yahoo quote:`, quote);
     if (quote && quote.regularMarketPrice) {
       console.log(`[getStockPrice] Yahoo: ${symbol} -> $${quote.regularMarketPrice}`);
       return quote.regularMarketPrice;
-    } else {
-      console.log(`[getStockPrice] Yahoo returned no price for ${symbol}`);
     }
   } catch (err) {
     console.error(`[getStockPrice] Yahoo Finance error for ${symbol}:`, err.message);
@@ -48,9 +45,6 @@ async function getStockPrice(symbol) {
   return 100.00;
 }
 
-/**
- * Fetch historical data for a ticker within a date range
- */
 async function getHistoricalData(ticker, startDate, endDate) {
   try {
     const result = await yahooFinance.historical(ticker, {
@@ -65,9 +59,6 @@ async function getHistoricalData(ticker, startDate, endDate) {
   }
 }
 
-/**
- * Generate mock historical data (fallback)
- */
 function generateMockHistoricalData(ticker, startDate, endDate) {
   const data = [];
   const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
