@@ -1,5 +1,8 @@
 const yahooFinance = require('yahoo-finance2');
 
+/**
+ * Fetch historical data for a ticker within a date range
+ */
 async function getHistoricalData(ticker, startDate, endDate) {
   try {
     const result = await yahooFinance.historical(ticker, {
@@ -10,11 +13,13 @@ async function getHistoricalData(ticker, startDate, endDate) {
     return result;
   } catch (err) {
     console.error('Yahoo Finance error:', err.message);
-    // Fallback to mock data
     return generateMockHistoricalData(ticker, startDate, endDate);
   }
 }
 
+/**
+ * Generate mock historical data (fallback)
+ */
 function generateMockHistoricalData(ticker, startDate, endDate) {
   const data = [];
   const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
@@ -57,31 +62,23 @@ function movingAverage(data, window) {
 }
 
 /**
- * Backtest engine – applies a strategy to historical data
+ * Backtest engine
  */
 async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
-  // Fetch historical data
   const historical = await getHistoricalData(ticker, startDate, endDate);
   if (!historical.length) throw new Error('No data available');
 
-  // Extract prices and dates
   const dates = historical.map(d => d.date);
   const prices = historical.map(d => d.close);
 
-  // Initialize portfolio
-  let cash = 10000; // starting capital
+  let cash = 10000;
   let shares = 0;
   let trades = [];
   let portfolioValues = [];
   let signals = [];
 
-  // Apply strategy
-  let buySignal = false;
-  let sellSignal = false;
-
   switch (strategy) {
     case 'buy_and_hold':
-      // Simple: buy all at first day, hold until end
       shares = cash / prices[0];
       cash = 0;
       for (let i = 0; i < prices.length; i++) {
@@ -103,21 +100,17 @@ async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
           signals.push({ date: dates[i], signal: 'WAIT' });
           continue;
         }
-
         const short = maShort[i];
         const long = maLong[i];
         const prevShort = maShort[i - 1] || 0;
         const prevLong = maLong[i - 1] || 0;
 
-        // Crossover: short crosses above long -> BUY
         if (prevShort <= prevLong && short > long && shares === 0) {
           shares = cash / prices[i];
           cash = 0;
           trades.push({ date: dates[i], type: 'BUY', price: prices[i], shares });
           signals.push({ date: dates[i], signal: 'BUY' });
-        }
-        // Crossover: short crosses below long -> SELL
-        else if (prevShort >= prevLong && short < long && shares > 0) {
+        } else if (prevShort >= prevLong && short < long && shares > 0) {
           cash = shares * prices[i];
           shares = 0;
           trades.push({ date: dates[i], type: 'SELL', price: prices[i], shares });
@@ -125,11 +118,9 @@ async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
         } else {
           signals.push({ date: dates[i], signal: 'HOLD' });
         }
-
         const value = cash + shares * prices[i];
         portfolioValues.push(value);
       }
-      // At the end, close any open position
       if (shares > 0) {
         cash = shares * prices[prices.length - 1];
         shares = 0;
@@ -142,12 +133,10 @@ async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
       throw new Error(`Strategy "${strategy}" not implemented`);
   }
 
-  // Compute metrics
   const finalValue = portfolioValues[portfolioValues.length - 1];
   const totalReturn = ((finalValue - 10000) / 10000) * 100;
   const annualizedReturn = totalReturn / ((endDate - startDate) / (365 * 24 * 60 * 60 * 1000));
 
-  // Compute Sharpe ratio (assume risk-free rate = 0)
   const returns = [];
   for (let i = 1; i < portfolioValues.length; i++) {
     returns.push((portfolioValues[i] - portfolioValues[i - 1]) / portfolioValues[i - 1]);
@@ -156,7 +145,6 @@ async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
   const stdDev = Math.sqrt(returns.map(r => Math.pow(r - avgReturn, 2)).reduce((a, b) => a + b, 0) / returns.length);
   const sharpe = stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0;
 
-  // Max drawdown
   let peak = portfolioValues[0];
   let maxDrawdown = 0;
   for (const val of portfolioValues) {
@@ -165,7 +153,6 @@ async function runBacktest(ticker, startDate, endDate, strategy, params = {}) {
     if (drawdown > maxDrawdown) maxDrawdown = drawdown;
   }
 
-  // Win rate (percentage of profitable trades)
   let winningTrades = 0;
   let totalTrades = 0;
   let realizedProfit = 0;
