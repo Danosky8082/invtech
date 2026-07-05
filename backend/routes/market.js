@@ -6,7 +6,15 @@ const { getStockPrice } = require('../services/dataService');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance();
 const Parser = require('rss-parser');
-const parser = new Parser();
+const parser = new Parser({
+  customFields: {
+    item: [
+      ['media:content', 'mediaContent'],
+      ['media:thumbnail', 'mediaThumbnail'],
+      ['content:encoded', 'contentEncoded']
+    ]
+  }
+});
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
@@ -82,6 +90,21 @@ router.get('/detect-country', async (req, res) => {
   }
 });
 
+// ==================== HELPER: Extract image from HTML ====================
+function extractImageFromHtml(html) {
+  if (!html) return null;
+  // Look for <img src="...">
+  const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/);
+  if (imgMatch && imgMatch[1]) return imgMatch[1];
+  // Look for og:image meta tag
+  const ogMatch = html.match(/<meta[^>]+property="og:image"[^>]+content=["']([^"']+)["']/);
+  if (ogMatch && ogMatch[1]) return ogMatch[1];
+  // Look for any image URL in the text
+  const urlMatch = html.match(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i);
+  if (urlMatch) return urlMatch[1];
+  return null;
+}
+
 // ==================== NEWS (RSS FEEDS) ====================
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
@@ -94,7 +117,6 @@ router.get('/news', async (req, res) => {
     ng: [
       'https://punchng.com/feed/',
       'https://businessday.ng/feed/'
-      // Removed guardian.ng due to malformed XML
     ],
     gb: [
       'http://feeds.bbci.co.uk/news/business/rss.xml'
@@ -121,22 +143,34 @@ router.get('/news', async (req, res) => {
         feed.items.forEach(item => {
           let imageUrl = null;
 
-          // Try enclosure
+          // 1. Try enclosure
           if (item.enclosure?.url) imageUrl = item.enclosure.url;
-          // Try media:content
-          else if (item['media:content']?.$?.url) imageUrl = item['media:content'].$.url;
-          // Try media:thumbnail
-          else if (item['media:thumbnail']?.$?.url) imageUrl = item['media:thumbnail'].$.url;
-          // Try content:encoded (extract first image)
-          else if (item['content:encoded']) {
-            const imgMatch = item['content:encoded'].match(/<img[^>]+src="([^">]+)"/);
-            if (imgMatch) imageUrl = imgMatch[1];
+          // 2. Try media:content (custom field)
+          if (!imageUrl && item.mediaContent?.$?.url) imageUrl = item.mediaContent.$.url;
+          // 3. Try media:thumbnail
+          if (!imageUrl && item.mediaThumbnail?.$?.url) imageUrl = item.mediaThumbnail.$.url;
+          // 4. Try content:encoded (HTML content)
+          if (!imageUrl && item.contentEncoded) {
+            imageUrl = extractImageFromHtml(item.contentEncoded);
           }
-          // Fallback: use a placeholder with the feed name
+          // 5. Try description (HTML content)
+          if (!imageUrl && item.description) {
+            imageUrl = extractImageFromHtml(item.description);
+          }
+          // 6. Try summary
+          if (!imageUrl && item.summary) {
+            imageUrl = extractImageFromHtml(item.summary);
+          }
+          // 7. Try contentSnippet (plain text, maybe contains image URL)
+          if (!imageUrl && item.contentSnippet) {
+            const urlMatch = item.contentSnippet.match(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/i);
+            if (urlMatch) imageUrl = urlMatch[1];
+          }
+
+          // Fallback: domain placeholder
           if (!imageUrl) {
-            // Generate a unique placeholder based on the feed source
-            const feedName = feedUrl.replace(/https?:\/\//, '').split('/')[0];
-            imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(feedName)}`;
+            const domain = feedUrl.replace(/https?:\/\//, '').split('/')[0];
+            imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(domain)}`;
           }
 
           allArticles.push({
@@ -148,7 +182,6 @@ router.get('/news', async (req, res) => {
           });
         });
       } catch (feedErr) {
-        // Silently skip malformed feeds
         console.warn(`Skipping feed ${feedUrl}:`, feedErr.message);
       }
     }
