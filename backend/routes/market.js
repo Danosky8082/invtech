@@ -5,6 +5,8 @@ const router = express.Router();
 const { getStockPrice } = require('../services/dataService');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance();
+const Parser = require('rss-parser');
+const parser = new Parser();
 
 // ==================== HELPER: MOCK NEWS ARRAY (FALLBACK) ====================
 function getMockNewsArray(country) {
@@ -80,41 +82,79 @@ router.get('/detect-country', async (req, res) => {
   }
 });
 
-// ==================== NEWS ====================
+// ==================== NEWS (RSS FEEDS) ====================
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
-  const GNEWS_API_KEY = process.env.GNEWS_API_KEY;
 
-  if (!GNEWS_API_KEY) {
-    console.log('No GNews API key – using mock news with example URLs');
-    return res.json(getMockNewsArray(country));
-  }
+  // Map country to relevant RSS feeds
+  const feedMap = {
+    us: [
+      'https://feeds.bloomberg.com/markets/news.rss',
+      'https://finance.yahoo.com/news/rssindex'
+    ],
+    ng: [
+      'https://punchng.com/feed/',
+      'https://guardian.ng/business/feed/',
+      'https://businessday.ng/feed/'
+    ],
+    gb: [
+      'http://feeds.bbci.co.uk/news/business/rss.xml',
+      'https://www.gov.uk/government/feed'
+    ],
+    ca: [
+      'https://www.theglobeandmail.com/business/?service=rss',
+      'https://financialpost.com/feed'
+    ],
+    au: [
+      'https://www.afr.com/feed',
+      'https://www.abc.net.au/news/business/feed.xml'
+    ],
+    in: [
+      'https://economictimes.indiatimes.com/rssfeedstopstories.cms',
+      'https://www.business-standard.com/rss/business_stories_top_news.rss'
+    ]
+  };
+
+  const feeds = feedMap[country] || feedMap.us;
 
   try {
-    const apiUrl = `https://gnews.io/api/v4/top-headlines?country=${country}&category=business&apikey=${GNEWS_API_KEY}`;
-    const response = await axios.get(apiUrl, { timeout: 8000 });
-    const articles = response.data.articles;
-
-    if (!articles || !Array.isArray(articles)) {
-      throw new Error('GNews did not return an array');
+    const allArticles = [];
+    for (const feedUrl of feeds) {
+      try {
+        const feed = await parser.parseURL(feedUrl);
+        feed.items.forEach(item => {
+          let imageUrl = null;
+          if (item.enclosure?.url) imageUrl = item.enclosure.url;
+          else if (item['media:content']?.$?.url) imageUrl = item['media:content'].$.url;
+          else if (item['media:thumbnail']?.$?.url) imageUrl = item['media:thumbnail'].$.url;
+          else if (item['content:encoded']) {
+            const imgMatch = item['content:encoded'].match(/<img[^>]+src="([^">]+)"/);
+            if (imgMatch) imageUrl = imgMatch[1];
+          }
+          if (!imageUrl) imageUrl = 'https://placehold.co/300x200?text=News';
+          allArticles.push({
+            title: item.title || 'Business News',
+            description: item.contentSnippet || item.summary || 'Read more...',
+            url: item.link || '#',
+            imageUrl: imageUrl,
+            publishDate: item.pubDate || new Date().toISOString(),
+          });
+        });
+      } catch (feedErr) {
+        console.error(`Failed to parse feed ${feedUrl}:`, feedErr.message);
+      }
     }
 
-    if (articles.length === 0) {
+    if (allArticles.length === 0) {
       return res.json(getMockNewsArray(country));
     }
 
-    const formatted = articles.slice(0, 15).map(a => ({
-      title: a.title || 'Business News',
-      description: a.description || 'Read more...',
-      url: a.url || '#',
-      imageUrl: a.image || 'https://placehold.co/300x200?text=News',
-      publishDate: a.publishedAt || new Date().toISOString()
-    }));
-
-    return res.json(formatted);
+    allArticles.sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+    const latestArticles = allArticles.slice(0, 15);
+    res.json(latestArticles);
   } catch (err) {
-    console.error('GNews error:', err.message);
-    return res.json(getMockNewsArray(country));
+    console.error('RSS News error:', err.message);
+    res.json(getMockNewsArray(country));
   }
 });
 
@@ -141,7 +181,6 @@ router.get('/stock/:symbol', async (req, res) => {
     return res.status(400).json({ error: 'Invalid symbol format' });
   }
   try {
-    // Use centralised price fetcher from dataService
     const price = await getStockPrice(symbol);
     res.json({
       symbol,
