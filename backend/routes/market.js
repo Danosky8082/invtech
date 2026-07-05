@@ -86,7 +86,6 @@ router.get('/detect-country', async (req, res) => {
 router.get('/news', async (req, res) => {
   const { country = 'us' } = req.query;
 
-  // Map country to relevant RSS feeds
   const feedMap = {
     us: [
       'https://feeds.bloomberg.com/markets/news.rss',
@@ -94,15 +93,13 @@ router.get('/news', async (req, res) => {
     ],
     ng: [
       'https://punchng.com/feed/',
-      'https://guardian.ng/business/feed/',
       'https://businessday.ng/feed/'
+      // Removed guardian.ng due to malformed XML
     ],
     gb: [
-      'http://feeds.bbci.co.uk/news/business/rss.xml',
-      'https://www.gov.uk/government/feed'
+      'http://feeds.bbci.co.uk/news/business/rss.xml'
     ],
     ca: [
-      'https://www.theglobeandmail.com/business/?service=rss',
       'https://financialpost.com/feed'
     ],
     au: [
@@ -110,8 +107,7 @@ router.get('/news', async (req, res) => {
       'https://www.abc.net.au/news/business/feed.xml'
     ],
     in: [
-      'https://economictimes.indiatimes.com/rssfeedstopstories.cms',
-      'https://www.business-standard.com/rss/business_stories_top_news.rss'
+      'https://economictimes.indiatimes.com/rssfeedstopstories.cms'
     ]
   };
 
@@ -124,14 +120,25 @@ router.get('/news', async (req, res) => {
         const feed = await parser.parseURL(feedUrl);
         feed.items.forEach(item => {
           let imageUrl = null;
+
+          // Try enclosure
           if (item.enclosure?.url) imageUrl = item.enclosure.url;
+          // Try media:content
           else if (item['media:content']?.$?.url) imageUrl = item['media:content'].$.url;
+          // Try media:thumbnail
           else if (item['media:thumbnail']?.$?.url) imageUrl = item['media:thumbnail'].$.url;
+          // Try content:encoded (extract first image)
           else if (item['content:encoded']) {
             const imgMatch = item['content:encoded'].match(/<img[^>]+src="([^">]+)"/);
             if (imgMatch) imageUrl = imgMatch[1];
           }
-          if (!imageUrl) imageUrl = 'https://placehold.co/300x200?text=News';
+          // Fallback: use a placeholder with the feed name
+          if (!imageUrl) {
+            // Generate a unique placeholder based on the feed source
+            const feedName = feedUrl.replace(/https?:\/\//, '').split('/')[0];
+            imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(feedName)}`;
+          }
+
           allArticles.push({
             title: item.title || 'Business News',
             description: item.contentSnippet || item.summary || 'Read more...',
@@ -141,7 +148,8 @@ router.get('/news', async (req, res) => {
           });
         });
       } catch (feedErr) {
-        console.error(`Failed to parse feed ${feedUrl}:`, feedErr.message);
+        // Silently skip malformed feeds
+        console.warn(`Skipping feed ${feedUrl}:`, feedErr.message);
       }
     }
 
