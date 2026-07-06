@@ -8,8 +8,8 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
   try {
-    // ✅ Faster hashing (salt rounds = 8 instead of 10)
-    const hashed = await bcrypt.hash(password, 8);
+    // ✅ Even faster hashing (salt rounds = 6)
+    const hashed = await bcrypt.hash(password, 6);
     const user = await prisma.user.create({
       data: { username, email, passwordHash: hashed },
       select: { id: true, username: true, email: true }
@@ -25,11 +25,10 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// ==================== LOGIN (with performance logging) ====================
+// ==================== LOGIN (optimised) ====================
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // 🚀 Optional: add timing logs to identify bottlenecks (remove in production if not needed)
   console.time('[Login] Total');
   console.time('[Login] Find user');
 
